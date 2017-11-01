@@ -61,7 +61,9 @@ class CanvasQueue : public Queue<Canvas>
           }
 
           *pushedReadyCanvas = &array[(startPoint + count) % capacity];
-          Serial.println((startPoint + count) % capacity);
+
+          //Serial.println((startPoint + count) % capacity);
+
           return true;
       }
 
