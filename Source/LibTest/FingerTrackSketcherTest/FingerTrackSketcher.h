@@ -2,7 +2,7 @@
 #ifndef FINGER_TRACK_SKETCHER_H
 #define FINGER_TRACK_SKETCHER_H
 
-#include "Canvas.h"
+#include "SketcherCanvas.h"
 
 class FingerTrackSketcher {
 
@@ -12,19 +12,22 @@ class FingerTrackSketcher {
     int deltaX;
     int deltaY;
 
-    const int canvasSizeX = 32;
-    const int canvasSizeY = 32;
+    const int skCanvasSizeX = 32;
+    const int skCanvasSizeY = 32;
+    const int startPosX = 15;
+    const int startPosY = 15;
 
   public:
 
-    Canvas *canvas;
+    SketcherCanvas skCanvas;
+    Canvas *toCanvas;
 
     FingerTrackSketcher() {
-      currentX = 0;
-      currentY = 0;
+      currentX = startPosX;
+      currentY = startPosY;
       deltaX = 0;
       deltaY = 0;
-      canvas->SetSize(canvasSizeX, canvasSizeY);
+      skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
     }
 
     void SetDeltaXY(int deltaX, int deltaY) {
@@ -34,7 +37,7 @@ class FingerTrackSketcher {
     
 
     void Sketch() {
-      canvas->Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
+      skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
       currentX += deltaX;
       currentY += deltaY;
       deltaX = 0;
@@ -45,15 +48,19 @@ class FingerTrackSketcher {
       void RequestCanvas(){
 
       }
-    */
+      */
 
+    //コピー先のキャンバスを設定
+    void SetToCanvas(Canvas *toCanvas){
+      this->toCanvas = toCanvas;
+    }
 
-    void CopyCanvas(Canvas *toCanvas) {
+    void CopyCanvas() {
       //キャンバスのコピー
-      canvas->Zoom(*toCanvas);
+      toCanvas->Zoom(toCanvas->SizeX(), toCanvas->SizeY(), skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX(), skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY());
 
       //キャンバスのクリア
-      ClearCanvas();
+      ClearSketcherCanvas();
 
       //パラメーターのクリア
       currentX = 0;
@@ -62,12 +69,12 @@ class FingerTrackSketcher {
       deltaY = 0;
     }
 
-    void ClearCanvas(){
-      canvas->color = false;
-      canvas->Boxf(0,0,sketchCanvas->SizeX(), sketchCanvas->SizeY());
-      canvas->color = true;
+    void ClearSketcherCanvas(){
+      skCanvas.color = false;
+      skCanvas.Boxf(0,0,skCanvas.SizeX(), skCanvas.SizeY());
+      skCanvas.color = true;
     }
 
 };
 
-#endif FINGER_TRACK_SKETCHER_H
+#endif

@@ -1,6 +1,6 @@
 
 #ifndef SKETCHER_CANVAS_H
-#define SLETCHER_CANVAS_H
+#define SKETCHER_CANVAS_H
 
 #include "Canvas.h"
 
@@ -35,35 +35,35 @@ class SketcherCanvas : public Canvas
       return lowerRightY;
     }
 
-    void SeekUpperLeftCorner() {
+    void SeekCorner() {
       int x;
       int y;
-      upperLeftX = 0;
-      upperLeftY = 0;
+      upperLeftX = sizeX;
+      upperLeftY = sizeY;
+      lowerRightX = 0;
+      lowerRightY = 0;
 
       for (y = 0; y < sizeY; y++) {
         for (x = 0; x < sizeX; x++) {
           if (ReadPixel(x, y)) {
-            upperLeftX = x;
-            upperLeftY = y;
-            return;
-          }
-        }
-      }
-    }
-
-    void SeekLowerRightCorner() {
-      int x;
-      int y;
-      lowerRightX = 0;
-      lowerRightY = 0;
-
-      for (y = sizeY; y > 0; y--) {
-        for (x = sizeX; x > 0; x--) {
-          if (ReadPixel(x, y)) {
-            lowerRightX = x;
-            lowerRightY = y;
-            return;
+            
+            //描画されているx座標中でもっとも小さいものを抽出
+            if(x < upperLeftX){
+              upperLeftX = x;
+            }
+            //描画されているx座標中でもっとも大きいものを抽出
+            if(x > lowerRightX){
+              lowerRightX = x;
+            }
+            //描画されているy座標中でもっとも小さいものを抽出
+            if(y < upperLeftY){
+              upperLeftY = y;
+            }
+            //描画されているy座標中でもっとも大きいものを抽出
+            if(y > lowerRightY){
+              lowerRightY = y;
+            }
+            
           }
         }
       }
