@@ -12,15 +12,15 @@
 //
 // 拡張方法:
 //  拡張はこのクラスを基底クラスとして継承することで実現できます.
-//
+//  
 // 仮想関数:
 //  仮想関数となっているのは以下のとおりです.
 //   Dot
-//
+//  
 //  Dot関数はscrBufに点を打つのに使用されています.
 //  すべての描画関数(scrBufに変更を加える関数)は必ずこのDotを使用してます.
 //  Dot関数をオバーライドすることで, そのほかすべての描画関数に影響を与えることが可能です.
-//
+// 
 // 更新履歴:
 //  2017/3/29:
 //   初期版完成
@@ -30,11 +30,8 @@
 //   updateフラグ機能分離
 //   ScaleTo関数追加
 //   Celput関数でキャンバスを引数に取れるようにした
-//   ReadPixel関数追加
+//   ReadPixcel関数追加
 //
-//  2017/11/1:
-//   Zoom関数追加
-//   Copy関数追加
 */
 
 #ifndef CANVAS_H
@@ -45,7 +42,7 @@
 
 class Canvas
 {
-protected:
+  protected:
     static int Abs(int a)
     {
         return a > 0 ? a : -a;
@@ -62,7 +59,7 @@ protected:
     int sizeX, sizeY;
     int scrBufCount = 0;
 
-public:
+  public:
     // 画面バッファ(スクリーン)
     // このバッファ上に描画関数が描画します.
     // 左上原点
@@ -75,7 +72,6 @@ public:
     //
     bool color = true;
 
-    // 描画先カレントポジション
     int posX = 0, posY = 0;
 
     int SizeX() { return sizeX; }
@@ -187,7 +183,7 @@ public:
     //
     // @return: trueのときは点が打たれています. falseのときは点が打たれていません.
     //
-    bool ReadPixel(int x, int y)
+    bool ReadPixcel(int x, int y)
     {
         if (x < 0 || x >= sizeX || y < 0 || y >= sizeY)
         {
@@ -369,7 +365,7 @@ public:
     //  画像データ変数名
     //
     template <typename T, int COL>
-    void Celput(const T(&imageName)[COL])
+    void Celput(const T (&imageName)[COL])
     {
 
         //画像の縦の長さを調べる
@@ -416,10 +412,10 @@ public:
     }
 
     //
-    // 引数で渡されたキャンバスを自身に描きこみます.
+    // 引数で渡されたキャンバスを自身に転写します.
     //
     // @param image:
-    //  コピー元のキャンバス
+    //  転写元のキャンバス
     //
     void Celput(Canvas &image)
     {
@@ -428,7 +424,7 @@ public:
 
             for (int y = 0; y < image.sizeY; y++)
             {
-                if (image.ReadPixel(x, y))
+                if (image.ReadPixcel(x, y))
                 {
                     Dot(posX, posY + y);
                 }
@@ -479,47 +475,26 @@ public:
 
     // End Dot関数より高次の描画関数 ###################################
 
-
     //
-    // 指定したキャンバスの一部を自身のキャンバスの現在の描画先カレントポジションへ
-    // 任意の大きさに変倍して複写します. 
+    // 自身の内容をスケール変換して指定されたキャンバスへ描きこみます.
+    // 自身のキャンバスサイズから相手のキャンバスサイズへスケール変換されます.
     //
-    // このスケール変換では, 線型補間が用いられます.
+    // このスケール変換は線型補間が用いられています.
     //
     // 注意:
-    //  自身のメンバ変数colorがこの関数実行前と実行後で変化している可能性があります.
+    //  相手キャンバスのメンバ変数colorがこの関数実行前と実行後で変化している可能性があります.
     //
-    // @param toSizeX:
-    //  キャンバスにコピーするときの大きさx
+    // @param dst:
+    //  スケール変換先のキャンバス
     //
-    // @param toSizeY:
-    //  キャンバスにコピーするときの大きさy
-    //
-    // @param from:
-    //  コピー元のキャンバス
-    //
-    // @param posXFrom:
-    //  コピー元の左上x座標
-    //
-    // @param posYFrom:
-    //  コピー元の左上y座標
-    //
-    // @param fromSizeX:
-    //  コピーする大きさx
-    // 
-    // @param fromSizeY:
-    //  コピーする大きさy
-    //
-    void Zoom(int toSizeX, int toSizeY, Canvas &from, int posXFrom, int posYFrom, int fromSizeX, int fromSizeY)
+    void ScaleTo(Canvas &dst)
     {
-        // 拡大率
-        double zx = toSizeX / (double)fromSizeX;
-        double zy = toSizeY / (double)fromSizeY;
+        double zx = dst.sizeX / (double)sizeX;
+        double zy = dst.sizeY / (double)sizeY;
 
-        // コピーするときの大きさ分処理をする
-        for (int y = 0; y < toSizeY; y++)
+        for (int y = 0; y < dst.sizeY; y++)
         {
-            for (int x = 0; x < toSizeX; x++)
+            for (int x = 0; x < dst.sizeX; x++)
             {
                 // 拡大した画像の座標(x, y)に対応する元の画像の座標値(fromX, fromY)
                 double fromX = (double)x / zx;
@@ -556,71 +531,21 @@ public:
                 }
 
                 // 線型補間
-                double d = (1.0 - q) * ((1.0 - p) * from.ReadPixel(posXFrom + m, posYFrom + n) + p * from.ReadPixel(posXFrom + m1, posYFrom + n))
-                    + q * ((1.0 - p) * from.ReadPixel(posXFrom + m, posYFrom + n1) + p * from.ReadPixel(posXFrom + m1, posYFrom + n1));
+                double d = (1.0 - q) * ((1.0 - p) * ReadPixcel(m, n) + p * ReadPixcel(m1, n)) + q * ((1.0 - p) * ReadPixcel(m, n1) + p * ReadPixcel(m1, n1));
 
                 // 四捨五入
                 if (d >= 0.5)
                 {
-                    color = true;
+                    dst.color = true;
                 }
                 else
                 {
-                    color = false;
+                    dst.color = false;
                 }
-
-                Dot(posX + x, posY + y);
+                dst.Dot(x, y);
             }
         }
-
-        // カレントポジション更新
-        // コピーサイズ分, x座標を移動する
-        posX += toSizeX;
     }
-
-    //
-    // 指定したキャンバスの一部を, 自身の描画カレントポジションへコピーします.
-    //
-    // 注意:
-    //  自身のメンバ変数colorがこの関数実行前と実行後で変化している可能性があります.
-    //
-    // @param from:
-    //  コピー元キャンバス
-    //
-    // @param fromPosX:
-    //  コピー元の左上x座標
-    //
-    // @param fromPosY:
-    //  コピー元の左上y座標
-    //
-    // @param copySizeX:
-    //  コピーする大きさx
-    //
-    // @param copySizeY:
-    //  コピーする大きさy
-    //
-    void Copy(Canvas &from, int fromPosX, int fromPosY, int copySizeX, int copySizeY) {
-        for (int y = 0; y < copySizeY; y++) {
-            for (int x = 0; x < copySizeX; x++) {
-
-                // コピー元に点がある場合
-                if (from.ReadPixel(fromPosX + x, fromPosY + y)) {
-                    color = true;
-                }
-
-                else {
-                    color = false;
-                }
-
-                Dot(posX + x, posY + y);
-            }
-        }
-
-        // カレントポジション更新
-        // コピーサイズ分, x座標を移動する
-        posX += copySizeX;
-    }
-
 };
 
 #endif
