@@ -1,3 +1,4 @@
+
 #ifndef FINGER_TRACK_SKETCHER_H
 #define FINGER_TRACK_SKETCHER_H
 
@@ -5,36 +6,35 @@
 
 class FingerTrackSketcher {
 
-  public:
+  private:
     int currentX;
     int currentY;
     int deltaX;
     int deltaY;
 
+    const int canvasSizeX = 32;
+    const int canvasSizeY = 32;
+
   public:
 
-    Canvas *sketchCanvas;
+    Canvas *canvas;
 
     FingerTrackSketcher() {
       currentX = 0;
       currentY = 0;
       deltaX = 0;
       deltaY = 0;
+      canvas->SetSize(canvasSizeX, canvasSizeY);
     }
 
     void SetDeltaXY(int deltaX, int deltaY) {
       this->deltaX = deltaX;
       this->deltaY = deltaY;
     }
-
-    void ChangeSketchCanvas(Canvas* canvas){
-      sketchCanvas = canvas;
-      ClearCanvas();
-    }
     
 
     void Sketch() {
-      sketchCanvas->Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
+      canvas->Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
       currentX += deltaX;
       currentY += deltaY;
       deltaX = 0;
@@ -50,7 +50,10 @@ class FingerTrackSketcher {
 
     void CopyCanvas(Canvas *toCanvas) {
       //キャンバスのコピー
-      sketchCanvas->ScaleTo(*toCanvas);
+      canvas->Zoom(*toCanvas);
+
+      //キャンバスのクリア
+      ClearCanvas();
 
       //パラメーターのクリア
       currentX = 0;
@@ -60,8 +63,9 @@ class FingerTrackSketcher {
     }
 
     void ClearCanvas(){
-      sketchCanvas->color = false;
-      sketchCanvas->Boxf(0,0,sketchCanvas->SizeX(), sketchCanvas->SizeY());
+      canvas->color = false;
+      canvas->Boxf(0,0,sketchCanvas->SizeX(), sketchCanvas->SizeY());
+      canvas->color = true;
     }
 
 };

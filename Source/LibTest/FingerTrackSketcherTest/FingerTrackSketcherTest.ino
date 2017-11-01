@@ -1,3 +1,4 @@
+/*
 #include "FingerTrackSketcher.h"
 #include "CanvasPrint.h"
 
@@ -38,4 +39,34 @@ void loop() {
 
   
 }
+
+*/
+
+#include "SketcherCanvas.h"
+#include "CanvasPrint.h"
+
+SketcherCanvas canvas(32,32);
+
+void setup(){
+  Serial.begin(9600);
+  canvas.Boxf(5,13,19,21);
+  SerialPrintCanvas(canvas);
+
+  canvas.SeekUpperLeftCorner();
+  canvas.SeekLowerRightCorner();
+  Serial.print("UpperLeftX: ");
+  Serial.println(canvas.GetUpperLeftX());
+  Serial.print("UpperLeftY: ");
+  Serial.println(canvas.GetUpperLeftY());
+  Serial.print("LowerRightX: ");
+  Serial.println(canvas.GetLowerRightX());
+  Serial.print("LowerRightY: ");
+  Serial.println(canvas.GetLowerRightY());
+}
+
+void loop(){
+  
+}
+
+
 
