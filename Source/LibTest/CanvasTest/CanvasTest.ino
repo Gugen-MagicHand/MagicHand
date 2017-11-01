@@ -20,10 +20,10 @@ void Draw(Canvas &canvas)
     {
         for (int x = 0; x < canvas.SizeX(); x++)
         {
-            if(canvas.ReadPixcel(x, y)){
+            if (canvas.ReadPixel(x, y)) {
                 Serial.print("*");
             }
-            else{
+            else {
                 Serial.print(" ");
             }
         }
@@ -37,15 +37,33 @@ void setup()
     Serial.begin(19200);
 
     // 数字を描画
-    numberImage.Pos(0,0);
+    numberImage.Pos(0, 0);
     numberImage.color = true;
     numberImage.PutChar(num);
 
-    
 
-    // スケール変換
-    numberImage.ScaleTo(scaledImage);
 
+    // --- スケール変換 -----------------
+    // カレントポジションを(0, 0)にする.
+    scaledImage.Pos(0, 0);
+
+    // コピー元すべての領域を自身すべての領域に変倍コピー
+    scaledImage.Zoom(scaledImage.SizeX(), scaledImage.SizeY(),
+        numberImage, 0, 0, numberImage.SizeX(), numberImage.SizeY());
+
+    // End スケール変換 ------
+
+    /*
+
+    // --- コピー -----------------------
+    // カレントポジションを(0, 0)にする.
+    scaledImage.Pos(10, 0);
+
+    // コピー元のすべてぼ領域を自身のカレントポジションへコピー
+    scaledImage.Copy(numberImage, 0, 0, numberImage.SizeX(), numberImage.SizeY());
+    // End コピー -------------
+
+    */
     //InitMainLoopStackSize(100);
 
 }
