@@ -7,13 +7,10 @@
 // 
 // Example usage:
 //
-
 // 容量を10に設定, キャンバスは32x32に設定
 CanvasQueue queue(10, 32, 32);
-
 // 作業用キャンバス
 Canvas *work;
-
 // プッシュ待機キャンバスを取得
 if(queue.GetPushedReadyCanvas(&work)){
     // 取得できた
@@ -21,11 +18,9 @@ if(queue.GetPushedReadyCanvas(&work)){
     // 1を描く
     work->color = true;
     work->PutChar('1');
-
     // 待ち行列にPush
     queue.Push();
 }
-
 */
 
 
@@ -36,7 +31,7 @@ if(queue.GetPushedReadyCanvas(&work)){
 #include "Queue.h"
 #include "Canvas.h"
 
-class CanvasQueue : public Queue<Canvas> 
+class CanvasQueue : public Queue<Canvas>
 {
   public:
 
@@ -61,7 +56,7 @@ class CanvasQueue : public Queue<Canvas>
           }
 
           *pushedReadyCanvas = &array[(startPoint + count) % capacity];
-          Serial.println((startPoint + count) % capacity);
+          //Serial.println((startPoint + count) % capacity);
           return true;
       }
 

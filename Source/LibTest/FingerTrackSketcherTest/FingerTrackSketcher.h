@@ -57,7 +57,7 @@ class FingerTrackSketcher {
 
     void CopyCanvas() {
       //キャンバスのコピー
-      toCanvas->Zoom(toCanvas->SizeX(), toCanvas->SizeY(), skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX(), skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY());
+      toCanvas->Zoom(toCanvas->SizeX(), toCanvas->SizeY(), skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1, skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1);
 
       //キャンバスのクリア
       ClearSketcherCanvas();
