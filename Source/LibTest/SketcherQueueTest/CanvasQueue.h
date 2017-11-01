@@ -36,7 +36,7 @@ if(queue.GetPushedReadyCanvas(&work)){
 #include "Queue.h"
 #include "Canvas.h"
 
-class CanvasQueue : public Queue<Canvas> 
+class CanvasQueue : public Queue<Canvas>
 {
   public:
 
