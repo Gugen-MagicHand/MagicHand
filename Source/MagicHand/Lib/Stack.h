@@ -22,6 +22,10 @@
 //
 //  2017/10/30:
 //   Push関数が右辺値参照を引数に取れるようにした.
+//
+//  2017/10/31:
+//   継承されることを考慮してprivate変数をprotectedに変更
+//
 */
 
 #ifndef STACK_H
@@ -29,7 +33,8 @@
 
 template<typename TYPE>
 class Stack {
-private:
+
+protected:
     int capacity;
     int count;
     TYPE *array = 0x00;

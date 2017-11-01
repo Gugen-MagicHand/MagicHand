@@ -23,6 +23,10 @@
 //  2017/10/30:
 //   Push関数が右辺値参照を引数に取れるようにした.
 //
+//  2017/11/1:
+//   代入演算子部のバグ修正(宣言されていない変数名)
+//   継承されることを考慮してprivate変数をprotectedに変更
+//
 */
 
 #ifndef QUEUE_H
@@ -31,7 +35,7 @@
 
 template <typename TYPE> class Queue
 {
-private:
+protected:
     int count = 0;
     int capacity = 0;
     TYPE *array = 0x00;
@@ -85,7 +89,7 @@ public:
     }
 
     Queue& operator=(Queue &&rQueue) {
-        MoveFrom(queue);
+        MoveFrom(rQueue);
         return *this;
     }
 
