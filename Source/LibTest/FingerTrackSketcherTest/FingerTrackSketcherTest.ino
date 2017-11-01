@@ -1,3 +1,4 @@
+
 #include "FingerTrackSketcher.h"
 #include "CanvasPrint.h"
 
@@ -10,32 +11,37 @@ int deltaX;
 int deltaY;
 
 void setup() {
-  ftSketcher.sketchCanvas.SetSize(8,8);
-  deltaX = 5;
-  deltaY = 1;
+  deltaX = -10;
+  deltaY = 10;
   Serial.begin(9600);
-}
 
-void loop() {
-  //スケッチャーのキャンバスをコピー先にコピーする
+
+  //deltaX,deltaY分だけ描画
   ftSketcher.SetDeltaXY(deltaX, deltaY);
   ftSketcher.Sketch();
+  SerialPrintCanvas(ftSketcher.skCanvas);
   
-  ftSketcher.CopyCanvas(&toCanvas);
+  
+  //スケッチャーのキャンバスをコピー先にコピーする
 
-  SerialPrintCanvas(toCanvas);
-
-  delay(1000);
-
-  ftSketcher.ClearCanvas();
 
   
   //コピー先からスケッチャーのキャンバスにコピーする
-  
-  
-
-  
-
-  
+    
 }
+
+void loop() {
+  //書かれているものの角をとる
+  ftSketcher.skCanvas.SeekCorner();
+  Serial.print("UpperLeftX:");
+  Serial.println(ftSketcher.skCanvas.GetUpperLeftX());
+  Serial.print("UpperLeftY:");
+  Serial.println(ftSketcher.skCanvas.GetUpperLeftY());
+  Serial.print("LowerRightX: ");
+  Serial.println(ftSketcher.skCanvas.GetLowerRightX());
+  Serial.print("LowerRightY: ");
+  Serial.println(ftSketcher.skCanvas.GetLowerRightY());
+}
+
+
 
