@@ -6,7 +6,11 @@
 
 class CanvasQueue : public Queue<Canvas>
 {
+public:
+    CanvasQueue(int capacity) : Queue(capacity)
+    {
 
+    }
 };
 
 #endif

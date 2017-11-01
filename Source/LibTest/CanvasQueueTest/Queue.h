@@ -25,6 +25,7 @@
 //
 //  2017/11/1:
 //   代入演算子部のバグ修正(宣言されていない変数名)
+//   継承されることを考慮してprivate変数をprotectedに変更
 //
 */
 
@@ -34,7 +35,7 @@
 
 template <typename TYPE> class Queue
 {
-private:
+protected:
     int count = 0;
     int capacity = 0;
     TYPE *array = 0x00;
