@@ -26,6 +26,9 @@
 //  2017/10/31:
 //   継承されることを考慮してprivate変数をprotectedに変更
 //
+//  2017/11/1:
+//   IsFull, IsEmpty関数追加
+//
 */
 
 #ifndef STACK_H
@@ -42,6 +45,9 @@ protected:
 public:
     int Capacity() { return capacity; }
     int Count() { return count; }
+
+    bool IsEmpty() { return count <= 0; }
+    bool IsFull() { return count >= capacity; }
 
     Stack(int capacity) {
         DeleteStack();
