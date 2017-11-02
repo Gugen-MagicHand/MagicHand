@@ -1,4 +1,5 @@
-
+//  2017/11/2:
+//    完成
 #ifndef FINGER_TRACK_SKETCHER_H
 #define FINGER_TRACK_SKETCHER_H
 
@@ -18,6 +19,9 @@ class FingerTrackSketcher {
     const int startPosY = 15;
 
   public:
+    bool requestFlag;
+
+  public:
 
     SketcherCanvas skCanvas;
     Canvas *toCanvas;
@@ -27,6 +31,7 @@ class FingerTrackSketcher {
       currentY = startPosY;
       deltaX = 0;
       deltaY = 0;
+      requestFlag = false;
       skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
     }
 
@@ -34,7 +39,7 @@ class FingerTrackSketcher {
       this->deltaX = deltaX;
       this->deltaY = deltaY;
     }
-    
+
 
     void Sketch() {
       skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
@@ -44,20 +49,36 @@ class FingerTrackSketcher {
       deltaY = 0;
     }
 
-    /*queueの完成待ち
-      void RequestCanvas(){
-
-      }
-      */
 
     //コピー先のキャンバスを設定
-    void SetToCanvas(Canvas *toCanvas){
+    void SetToCanvas(Canvas *toCanvas) {
       this->toCanvas = toCanvas;
     }
 
     void CopyCanvas() {
+      int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
+      int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
+
+      int toSizeX;
+      int toSizeY;
+
+      if (fromSizeX > fromSizeY) {
+        toSizeX = toCanvas->SizeX();
+        toSizeY = fromSizeY * toSizeX / fromSizeX;
+      } else {
+        toSizeY = toCanvas->SizeY();
+        toSizeX = fromSizeX * toSizeY / fromSizeY;
+      }
+
+      Serial.println(toSizeX);
+      Serial.println(toSizeY);
+
+      Serial.println(fromSizeX);
+      Serial.println(fromSizeY);
+
       //キャンバスのコピー
-      toCanvas->Zoom(toCanvas->SizeX(), toCanvas->SizeY(), skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1, skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1);
+      toCanvas->Pos(0, 0);
+      toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
 
       //キャンバスのクリア
       ClearSketcherCanvas();
@@ -69,9 +90,9 @@ class FingerTrackSketcher {
       deltaY = 0;
     }
 
-    void ClearSketcherCanvas(){
+    void ClearSketcherCanvas() {
       skCanvas.color = false;
-      skCanvas.Boxf(0,0,skCanvas.SizeX(), skCanvas.SizeY());
+      skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
       skCanvas.color = true;
     }
 

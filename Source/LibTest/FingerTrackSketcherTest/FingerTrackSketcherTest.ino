@@ -41,6 +41,9 @@ void loop() {
   Serial.println(ftSketcher.skCanvas.GetLowerRightX());
   Serial.print("LowerRightY: ");
   Serial.println(ftSketcher.skCanvas.GetLowerRightY());
+
+  while(1){
+  }
 }
 
 
