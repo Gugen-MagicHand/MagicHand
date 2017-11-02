@@ -60,7 +60,7 @@ void setup() {
     CreateBinarySemaphore(trackBallUpRotationSem);
     CreateBinarySemaphore(trackBallDownRotationSem);
 
-    InitMainLoopStackSize(100);
+    InitMainLoopStackSize(200);
 
 
 
