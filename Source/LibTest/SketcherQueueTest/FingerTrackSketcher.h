@@ -1,4 +1,5 @@
-
+//  2017/11/2:
+//    完成
 #ifndef FINGER_TRACK_SKETCHER_H
 #define FINGER_TRACK_SKETCHER_H
 

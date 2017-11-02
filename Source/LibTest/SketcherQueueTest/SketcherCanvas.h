@@ -1,4 +1,5 @@
-
+// 2017/11/2:
+//    完成
 #ifndef SKETCHER_CANVAS_H
 #define SKETCHER_CANVAS_H
 
