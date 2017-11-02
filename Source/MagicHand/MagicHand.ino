@@ -1,11 +1,6 @@
-//
-//ヘッダーファイルのインクルード
-#include "Lib/FingerTrackDriver.h"
-#include "Lib/FingerTrackSketcher.h"
-#include "Lib/CanvasQueue.h"
 
-//これはCanvasをシリアルに出力する関数を使うためのものです。本番はコメントアウトすること。
-#include "Lib/CanvasPrint.h"
+// Main header
+#include "Lib/MagicHand.h"
 
 //FingerTrackDriverの用意
 FingerTrackDriver ftDriver;
@@ -16,57 +11,144 @@ FingerTrackSketcher ftSketcher;
 //CanvasQueueを用意
 CanvasQueue canvasQueue(10, 8, 8);
 
-//ArduinOSのタスク宣言
+// --- ArduinOSのタスク宣言 --------------------------------------------------
 
 //トラックボールの回転認識のタスク
-DeclareTaskLoop(LeftTask);
-DeclareTaskLoop(RightTask);
-DeclareTaskLoop(UpTask);
-DeclareTaskLoop(DownTask);
+DeclareTaskLoop(TrackBallLeftRotationTask);
+DeclareTaskLoop(TrackBallRightRotationTask);
+DeclareTaskLoop(TrackBallUpRotationTask);
+DeclareTaskLoop(TrackBallDownRotationTask);
+
+
+
+// End 
+
+
+// --- セマフォ宣言 -------------------------------------------------------
+
+SemaphoreHandle trackBallLeftRotationSem;
+SemaphoreHandle trackBallRightRotationSem;
+SemaphoreHandle trackBallUpRotationSem;
+SemaphoreHandle trackBallDownRotationSem;
+
+// End 
+
 
 void setup() {
-  //シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
-  Serial.begin(19200);
+    //シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
+    Serial.begin(19200);
 
-  //FingerTrackDriverのピン設定、初期化
-  ftDriver.pinBTN = 2;
-  ftDriver.pinLFT = 3;
-  ftDriver.pinRHT = 4;
-  ftDriver.pinUP = 5;
-  ftDriver.pinDWN = 6;
-
-  ftDrivaer.Begin();
+    //FingerTrackDriverのピン設定、初期化
+    ftDriver.Begin(2, 3, 4, 5, 6);
 
 
-  //ArduinOSのタスクループを作る
-  //トラックボールの認識タスク
-  CreateTaskLoop(LeftTask, LOW_PRIORITY);
-  CreateTaskLoop(RightTask, LOW_PRIORITY);
-  CreateTaskLoop(UpTask, LOW_PRIORITY);
-  CreateTaskLoop(DownTask, LOW_PRIORITY);
+
+    // --- Task 作成 --------------------------------------------------------------
+
+    //トラックボールの認識タスク
+    CreateTaskLoop(TrackBallLeftRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallRightRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallUpRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
+
+
+    // --- セマフォ作成 -----------------------------------------------------------
+
+
+    CreateBinarySemaphore(trackBallLeftRotationSem);
+    CreateBinarySemaphore(trackBallRightRotationSem);
+    CreateBinarySemaphore(trackBallUpRotationSem);
+    CreateBinarySemaphore(trackBallDownRotationSem);
+
+    InitMainLoopStackSize(200);
+
+
+
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
+
+    if (Acquire(trackBallLeftRotationSem, 1000)) {
+        ftDriver.AddLeftToDeltaX();
+        Release(trackBallLeftRotationSem);
+    }
+
+    if (Acquire(trackBallRightRotationSem, 1000)) {
+        ftDriver.AddRightToDeltaX();
+        Release(trackBallRightRotationSem);
+    }
+
+    if (Acquire(trackBallUpRotationSem, 1000)) {
+        ftDriver.AddUpToDeltaY();
+        Release(trackBallUpRotationSem);
+    }
+
+    if (Acquire(trackBallDownRotationSem, 1000)) {
+        ftDriver.AddDownToDeltaY();
+        Release(trackBallDownRotationSem);
+    }
+
+    Serial.print("deltaX:");
+    Serial.print(ftDriver.GetDeltaX());
+    Serial.print("  deltaY:");
+    Serial.println(ftDriver.GetDeltaY());
+    ftDriver.ResetDeltaXY();
 }
 
-//トラックボール左回転を認識するタスク
-TaskLoop(LeftTask) {
-  ftDriver.ReadLeft();
+
+
+
+
+
+
+// --- LeftTask-------------------------------------------------------------
+
+TaskLoop(TrackBallLeftRotationTask) {
+    ftDriver.ReadLeft();
+
+    if (Acquire(trackBallLeftRotationSem, 1000)) {
+        ftDriver.AddLeftToSum();
+        Release(trackBallLeftRotationSem);
+
+    }
 }
 
-//トラックボール右回転を認識するタスク
-TaskLoop(RightTask) {
-  ftDriver.ReadRight();
+
+// --- rightTask--------------------------------------------------------------
+
+TaskLoop(TrackBallRightRotationTask) {
+    ftDriver.ReadRight();
+
+    if (Acquire(trackBallRightRotationSem, 1000)) {
+        ftDriver.AddRightToSum();
+        Release(trackBallRightRotationSem);
+
+    }
 }
 
-//トラックボール上回転を認識するタスク
-TaskLoop(UpTask) {
-  ftDriver.ReadUp();
+
+// --- UpTask--------------------------------------------------------------------
+
+TaskLoop(TrackBallUpRotationTask) {
+    ftDriver.ReadUp();
+
+    if (Acquire(trackBallUpRotationSem, 1000)) {
+        ftDriver.AddUpToSum();
+        Release(trackBallUpRotationSem);
+
+    }
 }
 
-//トラックボール下回転を認識するタスク
-TaskLoop(DownTask) {
-  ftDriver.ReadDown();
+// --- DownTask---------------------------------------------------------------------
+
+TaskLoop(TrackBallDownRotationTask) {
+    ftDriver.ReadDown();
+
+    if (Acquire(trackBallDownRotationSem, 1000)) {
+        ftDriver.AddDownToSum();
+        Release(trackBallDownRotationSem);
+
+    }
+
 }
