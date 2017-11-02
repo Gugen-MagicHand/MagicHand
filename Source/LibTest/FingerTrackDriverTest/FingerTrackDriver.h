@@ -32,22 +32,22 @@ class FingerTrackDriver : public TrackBallDriver
 
     //セマフォ用に四方向を個別にdeltaX,deltaYに追加
     void AddLeftToDeltaX(void) {
-      deltaX = (int)-1 / leftSum / range * sensitivity;
+      deltaX += (int)-1 / leftSum / range * sensitivity;
       leftSum = 0;
     }
 
     void AddRightToDeltaX(void) {
-      deltaX = (int)1 / rightSum / range * sensitivity;
+      deltaX += (int)1 / rightSum / range * sensitivity;
       rightSum = 0;
     }
 
     void AddUpToDeltaY(void) {
-      deltaY = (int)-1 / upSum / range * sensitivity;
+      deltaY += (int)-1 / upSum / range * sensitivity;
       upSum = 0;
     }
 
     void AddDownToDeltaY(void) {
-      deltaY = (int)1 / downSum / range * sensitivity;
+      deltaY += (int)1 / downSum / range * sensitivity;
       downSum = 0;
     }
 
