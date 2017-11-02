@@ -11,14 +11,14 @@
 class StrokeDiscriminator {
 private:
 
-    static const int strokeMaxCount = 17;
     
 
     //
-    // �X�R�A���Ⴂ�����悭���Ă���
+    // 二つのキャンバスの類似度をスコア値によって表現します.
+    // スコアが低い方がよく似ています.
     //
     static int CalculateCorrelationScore(Canvas &canvasA, Canvas &canvasB) {
-        if (canvasA.SizeX() != canavsB.SizeX() || canvasA.SizeY() != canvasB.SizeY()) {
+        if (canvasA.SizeX() != canvasB.SizeX() || canvasA.SizeY() != canvasB.SizeY()) {
             return -1;
         }
 
@@ -31,11 +31,11 @@ private:
             for (int y = 0; y < sizeY; y++) {
                 bool isDetected = false;
 
-                // ---- �����Ǝ���8�ߖT�𒲂ׂ� -------------
+                // ---- 自分と周り8近傍を調べる -------------
                 for (int i = -1; i <= 1; i++) {
                     for (int j = -1; j <= 1; j++) {
 
-                        // �͈̓`�F�b�N
+                        // 範囲チェック
                         if ((i == 0 && j == 0) || (x + i < 0) || (x + i >= sizeX)
                             || (y + j < 0) || (y + j >= sizeY)) {
                             continue;
@@ -64,7 +64,7 @@ private:
                     }
                 }
 
-                // End �����Ǝ���8�ߖT�𒲂ׂ� -------
+                // End 自分と周り8近傍を調べる -------
 
 
             }
@@ -77,93 +77,30 @@ private:
 
 public:
 
+    static const int STROKE_PATTERNS_COUNT = 17;
+
     static STROKE Discriminate(Canvas &target) {
-        for (int i = 0; i < strokeMaxCount; i++) {
-            switch (i) {
-            case 0:
 
-                break;
+        int minScore = 0;
+        STROKE res = STROKE::STROKE_SPACE;
 
-
-            case 1:
-
-                break;
+        Canvas pattern(8, 8);
+        
 
 
-            case 2:
 
-                break;
-                {
-            case 0:
+        for (int i = 0; i < STROKE_PATTERNS_COUNT; i++) {
+            // 白紙に戻す
+            pattern.color = false;
+            pattern.Boxf(0, 0, 7, 7);
 
-                break;
-
-
-            case 1:
-
-                break;
+            // パターン画像を描画する
+            pattern.color = true;
+            pattern.Pos(0, 0);
+            pattern.Celput(strokePatterns[i]);
 
 
-            case 2:
-
-                break;
-                {
-            case 0:
-
-                break;
-
-
-            case 1:
-
-                break;
-
-
-            case 2:
-
-                break;
-                {
-            case 0:
-
-                break;
-
-
-            case 1:
-
-                break;
-
-
-            case 2:
-
-                break;
-                {
-            case 0:
-
-                break;
-
-
-            case 1:
-
-                break;
-
-
-            case 2:
-
-                break;
-                {
-            case 0:
-
-                break;
-
-
-            case 1:
-
-                break;
-
-
-            case 2:
-
-                break;
-            }
+            
         }
     }
 
