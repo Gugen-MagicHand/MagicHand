@@ -1,3 +1,7 @@
+//更新履歴
+//  2017/11/2:
+//    完成
+
 #ifndef FINGER_TRACK_DRIVER_H
 #define FINGER_TRACK_DRIVER_H
 
@@ -10,21 +14,48 @@ class FingerTrackDriver : public TrackBallDriver
     const byte sensitivity = 32;
     const int maxRange = 20000;
     const int minRange = 10;
+
+    long leftSum;
+    long rightSum;
+    long upSum;
+    long downSum;
+
   public:
     const float range = 1.0 / minRange - 1.0 / maxRange;
 
-    float deltaX;
-    float deltaY;
+    int deltaX;
+    int deltaY;
 
 
 
   public:
 
-    long GetDeltaX(void) {
+    //セマフォ用に四方向を個別にdeltaX,deltaYに追加
+    void AddLeftToDeltaX(void) {
+      deltaX += (int)-1 / leftSum / range * sensitivity;
+      leftSum = 0;
+    }
+
+    void AddRightToDeltaX(void) {
+      deltaX += (int)1 / rightSum / range * sensitivity;
+      rightSum = 0;
+    }
+
+    void AddUpToDeltaY(void) {
+      deltaY += (int)-1 / upSum / range * sensitivity;
+      upSum = 0;
+    }
+
+    void AddDownToDeltaY(void) {
+      deltaY += (int)1 / downSum / range * sensitivity;
+      downSum = 0;
+    }
+
+    int GetDeltaX(void) {
       return deltaX;
     }
 
-    long GetDeltaY(void) {
+    int GetDeltaY(void) {
       return deltaY;
     }
 
@@ -45,39 +76,45 @@ class FingerTrackDriver : public TrackBallDriver
       left = pulseIn(pinLFT, HIGH, timeout);
       if (left >= maxRange || left < minRange) {
         left = 0;
-      } else {
-        deltaX -= 1.0 / left / range * sensitivity;
       }
+    }
+
+    void AddLeftToSum(void) {
+      leftSum += left;
     }
 
     void ReadRight(void) {
       right = pulseIn(pinRHT, HIGH, timeout);
       if (right >= maxRange || right < minRange) {
         right = 0;
-      }else{
-        deltaX += 1.0 / right / range * sensitivity;
       }
+    }
+
+    void AddRightToSum(void) {
+      rightSum += right;
     }
 
     void ReadUp(void) {
       up = pulseIn(pinUP, HIGH, timeout);
       if (up >= maxRange || up < minRange) {
         up = 0;
-      }else{
-        deltaY -= 1.0 / up / range * sensitivity;
       }
+    }
+
+    void AddUpToSum(void) {
+      upSum += up;
     }
 
     void ReadDown(void) {
       down = pulseIn(pinDWN, HIGH, timeout);
       if (down >= maxRange || down < minRange) {
         down = 0;
-      }else{
-        deltaY += 1.0 / down / range * sensitivity;
       }
     }
 
+    void AddDownToSum(void) {
+      downSum += down;
+    }
 };
-
 
 #endif FINGER_TRACK_DRIVER_H
