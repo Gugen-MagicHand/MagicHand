@@ -1,3 +1,8 @@
+//更新履歴
+//  2017/11/2:
+//    ピン設定をBegin()の引数とした。
+
+
 #ifndef TRACKBALL_DRIVER_H
 #define TRACKBALL_DRIVER_H
 
@@ -22,20 +27,41 @@ class TrackBallDriver
     long down;
     long right;
     long left;
-    
+
     unsigned long timeout = 1000000;
 
 
 
 
   public:
-    void Begin(void) {
+    void Begin(byte pinBTN, byte pinLFT, byte pinRHT, byte pinUP, byte pinDWN) {
 
       pinMode(pinBTN, INPUT);
       pinMode(pinLFT, INPUT);
       pinMode(pinRHT, INPUT);
       pinMode(pinUP, INPUT);
       pinMode(pinDWN, INPUT);
+
+      this->pinBTN = pinBTN;
+      this->pinLFT = pinLFT;
+      this->pinRHT = pinRHT;
+      this->pinUP = pinUP;
+      this->pinDWN = pinDWN;
+    }
+
+    void Begin(byte pinBTN, byte pinLFT, byte pinRHT, byte pinUP, byte pinDWN, byte pinWHT, byte pinGRN, byte pinRED, byte pinBLU) {
+
+      pinMode(pinBTN, INPUT);
+      pinMode(pinLFT, INPUT);
+      pinMode(pinRHT, INPUT);
+      pinMode(pinUP, INPUT);
+      pinMode(pinDWN, INPUT);
+
+      this->pinBTN = pinBTN;
+      this->pinLFT = pinLFT;
+      this->pinRHT = pinRHT;
+      this->pinUP = pinUP;
+      this->pinDWN = pinDWN;
 
       if (ledMode) {
         pinMode(pinWHT, OUTPUT);
@@ -47,6 +73,11 @@ class TrackBallDriver
         digitalWrite(pinGRN, LOW);
         digitalWrite(pinRED, LOW);
         digitalWrite(pinDWN, LOW);
+
+        this->pinWHT = pinWHT;
+        this->pinGRN = pinGRN;
+        this->pinRED = pinRED;
+        this->pinBLU = pinBLU;
       }
     }
 
@@ -58,19 +89,19 @@ class TrackBallDriver
       this->timeout = timeout;
     }
 
-    long GetLeft(void){
+    long GetLeft(void) {
       return left;
     }
 
-    long GetRight(void){
+    long GetRight(void) {
       return right;
     }
 
-    long GetUp(void){
+    long GetUp(void) {
       return up;
     }
 
-    long GetDown(void){
+    long GetDown(void) {
       return down;
     }
 
