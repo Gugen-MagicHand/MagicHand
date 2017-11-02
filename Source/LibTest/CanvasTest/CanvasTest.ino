@@ -46,7 +46,7 @@ void setup()
 
         numberImage.color = true;
         numberImage.Pos(0, 0);
-        numberImage.PutChar('0' + i);
+        numberImage.PutChar('(' + i);
 
 
         // コピー元すべての領域を自身すべての領域に変倍コピー
