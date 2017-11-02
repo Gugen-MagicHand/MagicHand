@@ -11,9 +11,10 @@
 
 class FingerTrackSketcher {
 
-  private:
+private:
     int currentX;
     int currentY;
+
     int deltaX;
     int deltaY;
 
@@ -22,110 +23,116 @@ class FingerTrackSketcher {
     const int startPosX = 15;
     const int startPosY = 15;
 
-  public:
-    bool pushFlag;
-    bool strokeEndFlag;
-    bool tokenEndFlag;
+public:
+    // deltaX, deltaYがともに0になった時間
+    unsigned long deltaXYBecomeZeroStartTime;
 
-    unsigned long deltaXYGetTime;
-
-  public:
+public:
     //skCanvasは四つ角をとれるようにしたCanvasの拡張。
     SketcherCanvas skCanvas;
-    
+
     //toCanvasにはqueueからキャンバスの参照をコピーする。
     Canvas *toCanvas;
 
     FingerTrackSketcher() {
-      currentX = startPosX;
-      currentY = startPosY;
-      deltaX = 0;
-      deltaY = 0;
-      skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
-
-      pushFlag = false;
-      strokeEndFlag = false;
-      tokenEndFlag = false;
+        currentX = startPosX;
+        currentY = startPosY;
+        deltaX = 0;
+        deltaY = 0;
+        skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
     }
 
-    void SetDeltaXY(int deltaX, int deltaY) {
-      this->deltaX = deltaX;
-      this->deltaY = deltaY;
+    bool IsDeltaXYZero() { return (deltaX == 0 && deltaY == 0); }
 
-      //文字認識のタイミングを計る時間計測開始
-      deltaXYGetTime = millis();
+    int DeltaX() { return deltaX; }
+    int DeltaY() { return deltaY; }
+
+    void SetDeltaXY(int deltaX, int deltaY) {
+        this->deltaX = deltaX;
+        this->deltaY = deltaY;
+
+        if (!(deltaX == 0 && deltaY == 0)) {
+            // deltaX, deltaYがともに0にならなかった時間を記録
+            // ともに0になったときは更新されない
+            deltaXYBecomeZeroStartTime = millis();
+        }
     }
 
 
     void Sketch() {
-      if ((deltaX < 3) && (deltaY < 3)) {
+        if ((deltaX < 3) && (deltaY < 3)) {
+            // deltaX, deltaYがともに3より小さい場合は,
+            // 描画を行わない.
+        }
+        else {
+            skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
+            currentX += deltaX;
+            currentY += deltaY;
+        }
 
-      } else {
-        skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
-        currentX += deltaX;
-        currentY += deltaY;
-      }
-      deltaX = 0;
-      deltaY = 0;
+        deltaX = 0;
+        deltaY = 0;
     }
 
-    unsigned long GetTimeFromDeltaXYGetTime(){
-      return millis() - deltaXYGetTime;
+    unsigned long DeltaXYStayZeroTime() {
+        return millis() - deltaXYBecomeZeroStartTime;
     }
 
 
 
     //コピー先のキャンバスを設定
     void SetToCanvas(Canvas *toCanvas) {
-      this->toCanvas = toCanvas;
+        this->toCanvas = toCanvas;
     }
 
 
     void CopyCanvas() {
-      int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
-      int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
+        int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
+        int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
-      ClearToCanvas();
+        ClearToCanvas();
 
-      if ((fromSizeX < 3) && (fromSizeY < 3)) {
-        toCanvas->Dot(0,0);
-      } else {
-        int toSizeX;
-        int toSizeY;
+        if ((fromSizeX < 3) && (fromSizeY < 3)) {
+            toCanvas->Dot(0, 0);
+        }
+        else {
+            int toSizeX;
+            int toSizeY;
 
-        if (fromSizeX > fromSizeY) {
-          toSizeX = toCanvas->SizeX();
-          toSizeY = fromSizeY * toSizeX / fromSizeX;
-        } else {
-          toSizeY = toCanvas->SizeY();
-          toSizeX = fromSizeX * toSizeY / fromSizeY;
+            if (fromSizeX > fromSizeY) {
+                toSizeX = toCanvas->SizeX();
+                toSizeY = fromSizeY * toSizeX / fromSizeX;
+            }
+            else {
+                toSizeY = toCanvas->SizeY();
+                toSizeX = fromSizeX * toSizeY / fromSizeY;
+            }
+
+            //キャンバスのコピー
+            toCanvas->Pos(0, 0);
+            toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
         }
 
-        //キャンバスのコピー
-        toCanvas->Pos(0, 0);
-        toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
-      }
+        //キャンバスのクリア
+        ClearSketcherCanvas();
 
-      //キャンバスのクリア
-      ClearSketcherCanvas();
-
-      //パラメーターのクリア
-      currentX = 0;
-      currentY = 0;
-      deltaX = 0;
-      deltaY = 0;
+        //パラメーターのクリア
+        currentX = 0;
+        currentY = 0;
+        deltaX = 0;
+        deltaY = 0;
     }
 
     void ClearSketcherCanvas() {
-      skCanvas.color = false;
-      skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
-      skCanvas.color = true;
+        skCanvas.color = false;
+        skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
+        skCanvas.color = true;
     }
 
-    void ClearToCanvas(){
-      toCanvas->color = false;
-      toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
-      toCanvas->color = true;
+    void ClearToCanvas() {
+        toCanvas->color = false;
+        toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
+        toCanvas->color = true;
     }
 
 };

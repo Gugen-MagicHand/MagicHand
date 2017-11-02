@@ -2,6 +2,19 @@
 // Main header
 #include "Lib/MagicHand.h"
 
+
+
+static const unsigned long STROKE_INTERVAL_TIME = 100;
+static const unsigned long LITERAL_INTERVAL_TIME = 500;
+
+
+
+
+
+
+
+
+
 //FingerTrackDriverの用意
 FingerTrackDriver ftDriver;
 
@@ -11,13 +24,15 @@ FingerTrackSketcher ftSketcher;
 //CanvasQueueを用意
 CanvasQueue canvasQueue(10, 8, 8);
 
-// --- ArduinOSのタスク宣言 --------------------------------------------------
+// --- タスク宣言 --------------------------------------------------
 
 //トラックボールの回転認識のタスク
 DeclareTaskLoop(TrackBallLeftRotationTask);
 DeclareTaskLoop(TrackBallRightRotationTask);
 DeclareTaskLoop(TrackBallUpRotationTask);
 DeclareTaskLoop(TrackBallDownRotationTask);
+
+DeclareTaskLoop(SketchCanvasFromTrackBallTask);
 
 
 
@@ -51,6 +66,8 @@ void setup() {
     CreateTaskLoop(TrackBallUpRotationTask, LOW_PRIORITY);
     CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
 
+    CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
+
 
     // --- セマフォ作成 -----------------------------------------------------------
 
@@ -68,7 +85,27 @@ void setup() {
 
 void loop() {
 
+}
 
+
+TaskLoop(SketchCanvasFromTrackBallTask) {
+
+    //Serial.println(ftSketcher.DeltaXYStayZeroTime());
+    static bool isAlreadyStrokePushed = true;
+    static bool isAlreadyLiteralPushed = true;
+
+    // CanvasQueue から作業領域キャンバスを確保できるまで待機
+    // 前回ループでプッシュされない限り, 同じキャンバスを返す.
+    while (true) {
+        Canvas *work;
+        if (canvasQueue.GetPushedReadyCanvas(&work)) {
+            ftSketcher.SetToCanvas(work);
+            break;
+        }
+    }
+
+
+    // --- トラックボールからdeltaX, deltaYを取得 --------------------
     if (Acquire(trackBallLeftRotationSem, 1000)) {
         ftDriver.AddLeftToDeltaX();
         Release(trackBallLeftRotationSem);
@@ -89,13 +126,49 @@ void loop() {
         Release(trackBallDownRotationSem);
     }
 
-    Serial.print("deltaX:");
-    Serial.print(ftDriver.GetDeltaX());
-    Serial.print("  deltaY:");
-    Serial.println(ftDriver.GetDeltaY());
-    ftDriver.ResetDeltaXY();
-}
+    ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
 
+    ftDriver.ResetDeltaXY();
+    // End トラックボールからdeltaX, deltaYを取得　------
+
+
+    if (!ftSketcher.IsDeltaXYZero()) {
+        // deltaX, deltaYがともに0ではないときは,
+        // 何らかの入力が行われたことなので,
+        // ストローク, リテラルの区切りとした
+        // pushフラグを下す.
+        isAlreadyStrokePushed = false;
+        isAlreadyLiteralPushed = false;
+    }
+
+
+    // スケッチに描画
+    ftSketcher.Sketch();
+
+
+    if (!isAlreadyStrokePushed
+        && (ftSketcher.DeltaXYStayZeroTime() > STROKE_INTERVAL_TIME)) {
+        ftSketcher.CopyCanvas();
+        canvasQueue.Push();
+
+        // strokeプッシュ済みなのでフラグを上げる.
+        isAlreadyStrokePushed = true;
+        Serial.println("StrokeP");
+    }
+    else if (!isAlreadyLiteralPushed
+        && (ftSketcher.DeltaXYStayZeroTime() > LITERAL_INTERVAL_TIME)) {
+        ftSketcher.CopyCanvas();
+        canvasQueue.Push();
+
+        // literalプッシュ済みなのでフラグを上げる.
+        isAlreadyLiteralPushed = true;
+        Serial.println("LiteralP");
+    }
+
+
+
+
+}
 
 
 
