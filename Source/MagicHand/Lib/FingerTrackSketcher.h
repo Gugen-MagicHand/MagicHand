@@ -1,5 +1,9 @@
 //  2017/11/2:
 //    完成
+//  2017/11/3:
+//    時間計測して文字の区切りを入れる関数追加
+//    点を認識できるようにCopyCanvas関数を改良
+
 #ifndef FINGER_TRACK_SKETCHER_H
 #define FINGER_TRACK_SKETCHER_H
 
@@ -19,11 +23,17 @@ class FingerTrackSketcher {
     const int startPosY = 15;
 
   public:
-    bool requestFlag;
+    bool pushFlag;
+    bool strokeEndFlag;
+    bool tokenEndFlag;
+
+    unsigned long deltaXYGetTime;
 
   public:
-
+    //skCanvasは四つ角をとれるようにしたCanvasの拡張。
     SketcherCanvas skCanvas;
+    
+    //toCanvasにはqueueからキャンバスの参照をコピーする。
     Canvas *toCanvas;
 
     FingerTrackSketcher() {
@@ -31,48 +41,70 @@ class FingerTrackSketcher {
       currentY = startPosY;
       deltaX = 0;
       deltaY = 0;
-      requestFlag = false;
       skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
+
+      pushFlag = false;
+      strokeEndFlag = false;
+      tokenEndFlag = false;
     }
 
     void SetDeltaXY(int deltaX, int deltaY) {
       this->deltaX = deltaX;
       this->deltaY = deltaY;
+
+      //文字認識のタイミングを計る時間計測開始
+      deltaXYGetTime = millis();
     }
 
 
     void Sketch() {
-      skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
-      currentX += deltaX;
-      currentY += deltaY;
+      if ((deltaX < 3) && (deltaY < 3)) {
+
+      } else {
+        skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
+        currentX += deltaX;
+        currentY += deltaY;
+      }
       deltaX = 0;
       deltaY = 0;
     }
 
+    unsigned long GetTimeFromDeltaXYGetTime(){
+      return millis() - deltaXYGetTime;
+    }
 
-    //コピー先のキャンバスを設定、今回は使わない（多分永遠使われない...）
+
+
+    //コピー先のキャンバスを設定
     void SetToCanvas(Canvas *toCanvas) {
       this->toCanvas = toCanvas;
     }
+
 
     void CopyCanvas() {
       int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
       int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
-      int toSizeX;
-      int toSizeY;
+      ClearToCanvas();
 
-      if (fromSizeX > fromSizeY) {
-        toSizeX = toCanvas->SizeX();
-        toSizeY = fromSizeY * toSizeX / fromSizeX;
+      if ((fromSizeX < 3) && (fromSizeY < 3)) {
+        toCanvas->Dot(0,0);
       } else {
-        toSizeY = toCanvas->SizeY();
-        toSizeX = fromSizeX * toSizeY / fromSizeY;
-      }
+        int toSizeX;
+        int toSizeY;
 
-      //キャンバスのコピー
-      toCanvas->Pos(0, 0);
-      toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
+        if (fromSizeX > fromSizeY) {
+          toSizeX = toCanvas->SizeX();
+          toSizeY = fromSizeY * toSizeX / fromSizeX;
+        } else {
+          toSizeY = toCanvas->SizeY();
+          toSizeX = fromSizeX * toSizeY / fromSizeY;
+        }
+
+        //キャンバスのコピー
+        toCanvas->Pos(0, 0);
+        toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
+      }
 
       //キャンバスのクリア
       ClearSketcherCanvas();
@@ -88,6 +120,12 @@ class FingerTrackSketcher {
       skCanvas.color = false;
       skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
       skCanvas.color = true;
+    }
+
+    void ClearToCanvas(){
+      toCanvas->color = false;
+      toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
+      toCanvas->color = true;
     }
 
 };
