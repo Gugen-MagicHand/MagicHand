@@ -38,6 +38,9 @@ void setup() {
 
         Draw(pattern);
 
+        STROKE guessed = StrokeDiscriminator::Discriminate(pattern);
+        Serial.println((int)guessed);
+
         Serial.println("");
     }
 }
