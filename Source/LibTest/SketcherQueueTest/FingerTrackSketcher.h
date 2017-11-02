@@ -55,28 +55,29 @@ class FingerTrackSketcher {
     }
 
     void CopyCanvas() {
-      int fromSizeX = skCanvas.GetUpperLeftX() - skCanvas.GetLowerRightX();
-      int fromSizeY = skCanvas.GetUpperLeftY() - skCanvas.GetLowerRightY();
+      int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
+      int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
-      double toSizeX;
-      double toSizeY;
+      int toSizeX;
+      int toSizeY;
 
       if (fromSizeX > fromSizeY) {
-        toSizeX = (double)fromSizeX;
-        toSizeY = toSizeY / toSizeX * toCanvas->SizeX();
+        toSizeX = toCanvas->SizeX();
+        toSizeY = fromSizeY * toSizeX / fromSizeX;
       } else {
-        toSizeY = (double)fromSizeY;
-        toSizeX = toSizeX / toSizeY * toCanvas->SizeY();
-
+        toSizeY = toCanvas->SizeY();
+        toSizeX = fromSizeX * toSizeY / fromSizeY;
       }
 
       Serial.println(toSizeX);
-      Serial.println("/");
       Serial.println(toSizeY);
+
+      Serial.println(fromSizeX);
+      Serial.println(fromSizeY);
 
       //キャンバスのコピー
       toCanvas->Pos(0, 0);
-      toCanvas->Zoom(toCanvas->SizeX(), toCanvas->SizeY(), skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1, skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1);
+      toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
 
       //キャンバスのクリア
       ClearSketcherCanvas();
