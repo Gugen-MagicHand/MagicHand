@@ -16,7 +16,7 @@ void SerialPrintCanvas(Canvas &canvas){
   
   for(i=0; i<sizeY; i++){
     for(j=0; j<sizeX; j++){
-      dot = canvas.ReadPixcel(j,i);
+      dot = canvas.ReadPixel(j,i);
       if(dot){
         Serial.print("■");
       }else{
