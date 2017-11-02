@@ -69,12 +69,7 @@ class FingerTrackSketcher {
         toSizeY = toCanvas->SizeY();
         toSizeX = fromSizeX * toSizeY / fromSizeY;
       }
-
-      Serial.println(toSizeX);
-      Serial.println(toSizeY);
-
-      Serial.println(fromSizeX);
-      Serial.println(fromSizeY);
+      
 
       //キャンバスのコピー
       toCanvas->Pos(0, 0);
