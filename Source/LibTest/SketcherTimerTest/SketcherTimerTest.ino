@@ -22,8 +22,8 @@ void setup() {
 
     SerialPrintCanvas(ftSketcher.skCanvas);
 
-    ftSketcher.requestFlag = canvasQueue.GetPushedReadyCanvas(&ftSketcher.toCanvas);
-    if (ftSketcher.requestFlag) {
+    ftSketcher.pushFlag = canvasQueue.GetPushedReadyCanvas(&ftSketcher.toCanvas);
+    if (ftSketcher.pushFlag) {
       ftSketcher.CopyCanvas();
       SerialPrintCanvas(*(ftSketcher.toCanvas));
       canvasQueue.Push();
@@ -44,6 +44,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  ftSketcher.SetDeltaXY(10,10);
+  delay(1000);
+  Serial.println(ftSketcher.GetTimeFromDeltaXYGetTime());
 
 }

@@ -22,9 +22,12 @@ class FingerTrackSketcher {
     const int startPosX = 15;
     const int startPosY = 15;
 
+  public:
     bool pushFlag;
     bool strokeEndFlag;
     bool tokenEndFlag;
+
+    unsigned long deltaXYGetTime;
 
   public:
     //skCanvasは四つ角をとれるようにしたCanvasの拡張。
@@ -48,6 +51,9 @@ class FingerTrackSketcher {
     void SetDeltaXY(int deltaX, int deltaY) {
       this->deltaX = deltaX;
       this->deltaY = deltaY;
+
+      //文字認識のタイミングを計る時間計測開始
+      deltaXYGetTime = millis();
     }
 
 
@@ -61,6 +67,10 @@ class FingerTrackSketcher {
       }
       deltaX = 0;
       deltaY = 0;
+    }
+
+    unsigned long GetTimeFromDeltaXYGetTime(){
+      return millis() - deltaXYGetTime;
     }
 
 
@@ -113,7 +123,7 @@ class FingerTrackSketcher {
     }
 
     void ClearToCanvas(){
-      toCanvas=>color = false;
+      toCanvas->color = false;
       toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
       toCanvas->color = true;
     }
