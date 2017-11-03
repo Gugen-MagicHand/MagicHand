@@ -2,7 +2,7 @@
 // Main header
 #include "Lib/MagicHand.h"
 
-static const unsigned long STROKE_INTERVAL_TIME = 100;
+static const unsigned long STROKE_INTERVAL_TIME = 200;
 static const unsigned long LITERAL_INTERVAL_TIME = 500;
 
 
@@ -119,7 +119,7 @@ TaskLoop(DiscriminatorTask) {
   if (Acquire(canvasQueueSem, 1000)) {
     if (canvasQueue.Peek(&work)) {
       stroke = StrokeDiscriminator::Discriminate(*work);
-      SerialPrintCanvas(*work);
+      //SerialPrintCanvas(*work);
       canvasQueue.Pop(&work);
       //outputCanvas.Celput(strokePatterns[stroke]);
       //Serial.println(stroke);

@@ -131,14 +131,14 @@ public:
 
             //キャンバスのコピー
             toCanvas->Pos(0, 0);
+/*
             Serial.println(skCanvas.GetUpperLeftX());
-
             Serial.println(skCanvas.GetUpperLeftY());
             Serial.println(fromSizeX);
             Serial.println(fromSizeY);
             Serial.println(toSizeX);
             Serial.println(toSizeY);
-
+*/
             toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
         }
 
