@@ -9,6 +9,11 @@
 
 #include "SketcherCanvas.h"
 
+
+//デバッグ用
+#include "CanvasPrint.h"
+
+
 class FingerTrackSketcher {
 
 private:
@@ -60,7 +65,7 @@ public:
 
 
     void Sketch() {
-        if ((deltaX < 3) && (deltaY < 3)) {
+        if ((abs(deltaX) < 3) && (abs(deltaY) < 3)) {
             // deltaX, deltaYがともに3より小さい場合は,
             // 描画を行わない.
         }
@@ -87,38 +92,65 @@ public:
 
 
     void CopyCanvas() {
+
+        //SerialPrintCanvas(skCanvas);
+
+        skCanvas.SeekCorner();
+
         int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
         int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
         ClearToCanvas();
 
-        if ((fromSizeX < 3) && (fromSizeY < 3)) {
+
+        if ((fromSizeX < 3) && (fromSizeY < 3) && (fromSizeX > 1) && (fromSizeY > 1)) {
             toCanvas->Dot(0, 0);
         }
+
+
         else {
             int toSizeX;
             int toSizeY;
 
             if (fromSizeX > fromSizeY) {
                 toSizeX = toCanvas->SizeX();
-                toSizeY = fromSizeY * toSizeX / fromSizeX;
+                toSizeY = fromSizeY * (double)toSizeX / fromSizeX;
+
+                if (toSizeY <= 0) {
+                    toSizeY = 1;
+                }
             }
             else {
                 toSizeY = toCanvas->SizeY();
-                toSizeX = fromSizeX * toSizeY / fromSizeY;
+                toSizeX = fromSizeX * (double)toSizeY / fromSizeY;
+
+                if (toSizeX <= 0) {
+                    toSizeX = 1;
+                }
             }
 
             //キャンバスのコピー
             toCanvas->Pos(0, 0);
+            Serial.println(skCanvas.GetUpperLeftX());
+
+            Serial.println(skCanvas.GetUpperLeftY());
+            Serial.println(fromSizeX);
+            Serial.println(fromSizeY);
+            Serial.println(toSizeX);
+            Serial.println(toSizeY);
+
             toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
         }
+
+
+        //SerialPrintCanvas(*toCanvas);
 
         //キャンバスのクリア
         ClearSketcherCanvas();
 
         //パラメーターのクリア
-        currentX = 0;
-        currentY = 0;
+        currentX = startPosX;
+        currentY = startPosY;
         deltaX = 0;
         deltaY = 0;
     }

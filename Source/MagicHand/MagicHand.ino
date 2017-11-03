@@ -2,10 +2,6 @@
 // Main header
 #include "Lib/MagicHand.h"
 
-//デバッグ用
-#include "Lib/CanvasPrint.h"
-
-
 static const unsigned long STROKE_INTERVAL_TIME = 100;
 static const unsigned long LITERAL_INTERVAL_TIME = 500;
 
@@ -199,11 +195,14 @@ TaskLoop(SketchCanvasFromTrackBallTask) {
 
   if (!isAlreadyStrokePushed
       && (ftSketcher.DeltaXYStayZeroTime() > STROKE_INTERVAL_TIME)) {
+
     ftSketcher.CopyCanvas();
+    
+        
 
     if (Acquire(canvasQueueSem, 1000)) {
-    canvasQueue.Push();
-    Release(canvasQueueSem);
+        canvasQueue.Push();
+        Release(canvasQueueSem);
     }
 
     // strokeプッシュ済みなのでフラグを上げる.
@@ -215,8 +214,8 @@ TaskLoop(SketchCanvasFromTrackBallTask) {
     ftSketcher.CopyCanvas();
 
     if (Acquire(canvasQueueSem, 1000)) {
-    canvasQueue.Push();
-    Release(canvasQueueSem);
+        canvasQueue.Push();
+        Release(canvasQueueSem);
     }
 
     // literalプッシュ済みなのでフラグを上げる.
