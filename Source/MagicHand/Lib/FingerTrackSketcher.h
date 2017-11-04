@@ -10,18 +10,16 @@
 #include "SketcherCanvas.h"
 
 
-//デバッグ用
-#include "CanvasPrint.h"
 
 
 class FingerTrackSketcher {
 
 private:
-    int currentX;
-    int currentY;
+    double currentX;
+    double currentY;
 
-    int deltaX;
-    int deltaY;
+    double deltaX;
+    double deltaY;
 
     const int skCanvasSizeX = 32;
     const int skCanvasSizeY = 32;
@@ -53,8 +51,12 @@ public:
     int DeltaY() { return deltaY; }
 
     void SetDeltaXY(int deltaX, int deltaY) {
-        this->deltaX = deltaX;
-        this->deltaY = deltaY;
+        this->deltaX += deltaX;
+        this->deltaY += deltaY;
+
+
+        //Serial.println(deltaX);
+        //Serial.println(deltaY);
 
         if (!(deltaX == 0 && deltaY == 0)) {
             // deltaX, deltaYがともに0にならなかった時間を記録
@@ -65,11 +67,20 @@ public:
 
 
     void Sketch() {
+        // これでは, 合わされば大きくなる微小な速度の描画が反映されない.
+        // 
+        /*
         if ((abs(deltaX) < 3) && (abs(deltaY) < 3)) {
             // deltaX, deltaYがともに3より小さい場合は,
             // 描画を行わない.
         }
-        else {
+        else*/
+
+
+        if (deltaX != 0.0 || deltaY != 0.0)
+        {
+            // deltaX, deltaYが0ではないときに, 描画を始める.
+
             skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
             currentX += deltaX;
             currentY += deltaY;
@@ -79,6 +90,10 @@ public:
         deltaY = 0;
     }
 
+    //
+    // @return:
+    //  deltaX, deltaYがともに0である時間を取得する
+    //
     unsigned long DeltaXYStayZeroTime() {
         return millis() - deltaXYBecomeZeroStartTime;
     }
@@ -93,54 +108,62 @@ public:
 
     void CopyCanvas() {
 
-        //SerialPrintCanvas(skCanvas);
-
-        skCanvas.SeekCorner();
-
-        int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
-        int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
+        SerialPrintCanvas(skCanvas);
 
         ClearToCanvas();
 
+        if (skCanvas.SeekCorner()) {
 
-        if ((fromSizeX < 3) && (fromSizeY < 3) && (fromSizeX > 1) && (fromSizeY > 1)) {
-            toCanvas->Dot(0, 0);
-        }
+            // 正常にコーナを取得できた時
+
+            // 左上座標, 右下座標を取得し, コピー元のサイズを計算する.
+            int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
+            int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
 
-        else {
-            int toSizeX;
-            int toSizeY;
 
-            if (fromSizeX > fromSizeY) {
-                toSizeX = toCanvas->SizeX();
-                toSizeY = fromSizeY * (double)toSizeX / fromSizeX;
-
-                if (toSizeY <= 0) {
-                    toSizeY = 1;
-                }
+            if ((fromSizeX < 3) && (fromSizeY < 3) && (fromSizeX > 1) && (fromSizeY > 1)) {
+                toCanvas->Dot(0, 0);
             }
+
+
             else {
-                toSizeY = toCanvas->SizeY();
-                toSizeX = fromSizeX * (double)toSizeY / fromSizeY;
+                int toSizeX;
+                int toSizeY;
 
-                if (toSizeX <= 0) {
-                    toSizeX = 1;
+                if (fromSizeX > fromSizeY) {
+                    toSizeX = toCanvas->SizeX();
+                    toSizeY = fromSizeY * (double)toSizeX / fromSizeX;
+
+                    if (toSizeY <= 0) {
+                        toSizeY = 1;
+                    }
                 }
+                else {
+                    toSizeY = toCanvas->SizeY();
+                    toSizeX = fromSizeX * (double)toSizeY / fromSizeY;
+
+                    if (toSizeX <= 0) {
+                        toSizeX = 1;
+                    }
+                }
+
+                //キャンバスのコピー
+                toCanvas->Pos(0, 0);
+                /*
+                Serial.println(skCanvas.GetUpperLeftX());
+                Serial.println(skCanvas.GetUpperLeftY());
+                Serial.println(fromSizeX);
+                Serial.println(fromSizeY);
+                Serial.println(toSizeX);
+                Serial.println(toSizeY);
+                */
+                toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
             }
 
-            //キャンバスのコピー
-            toCanvas->Pos(0, 0);
-/*
-            Serial.println(skCanvas.GetUpperLeftX());
-            Serial.println(skCanvas.GetUpperLeftY());
-            Serial.println(fromSizeX);
-            Serial.println(fromSizeY);
-            Serial.println(toSizeX);
-            Serial.println(toSizeY);
-*/
-            toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
         }
+
+
 
 
         //SerialPrintCanvas(*toCanvas);

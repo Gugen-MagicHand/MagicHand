@@ -36,13 +36,23 @@ public:
         return lowerRightY;
     }
 
-    void SeekCorner() {
+
+    //
+    // コーナを探します.
+    // まずコーナを計算してから, コーナを取得します.
+    // 
+    // @return: 
+    //  trueのとき, 正常に取得できた.
+    //  falseのときは, 正常に取得できていません.
+    //
+    bool SeekCorner() {
         int x;
         int y;
+
         upperLeftX = sizeX;
         upperLeftY = sizeY;
-        lowerRightX = 0;
-        lowerRightY = 0;
+        lowerRightX = -1;
+        lowerRightY = -1;
 
         for (y = 0; y < sizeY; y++) {
             for (x = 0; x < sizeX; x++) {
@@ -68,6 +78,14 @@ public:
                 }
             }
         }
+
+        // upperLeft, lowerRight が更新されているとき
+        if (upperLeftX < sizeX && upperLeftY < sizeY && 0 <= lowerRightX && 0 <= lowerRightY) {
+            return true;
+        }
+
+        // Somethig is wrong.
+        return false;
     }
 
 };

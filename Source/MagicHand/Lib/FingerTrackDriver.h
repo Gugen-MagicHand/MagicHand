@@ -16,7 +16,7 @@
 class FingerTrackDriver : public TrackBallDriver
 {
 private:
-    const float sensitivity = 32.0;
+    const float sensitivity = 16.0;
 
     // 最大周期
     // 人がトラックボールをゆっくり回せる限界周期
@@ -34,8 +34,8 @@ private:
 public:
     const float range = 1.0 / minRange - 1.0 / maxRange;
 
-    int deltaX = 0;
-    int deltaY = 0;
+    double deltaX = 0;
+    double deltaY = 0;
 
 
 
