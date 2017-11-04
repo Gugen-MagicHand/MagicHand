@@ -14,10 +14,10 @@ FingerTrackDriver ftDriver;
 FingerTrackSketcher ftSketcher;
 
 //CanvasQueueを用意
-CanvasQueue canvasQueue(10, 8, 8);
+CanvasQueue canvasQueue(10, 16, 16);
 
 //Discriminator用canvas
-Canvas targetCanvas(8, 8);
+//Canvas targetCanvas(8, 8);
 
 // --- タスク宣言 --------------------------------------------------
 
@@ -68,7 +68,7 @@ void setup()
     CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
 
     //スケッチャー関連のタスク
-    CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
+    //CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
 
     //パターン認識のタスク
     CreateTaskLoopWithStackSize(DiscriminatorTask, LOW_PRIORITY, 200);
@@ -203,7 +203,7 @@ TaskLoop(SketchCanvasFromTrackBallTask)
 
         // strokeプッシュ済みなのでフラグを上げる.
         isAlreadyStrokePushed = true;
-        Serial.println("StrokeP");
+        //Serial.println("StrokeP");
     }
     else if (!isAlreadyLiteralPushed && (ftSketcher.DeltaXYStayZeroTime() > LITERAL_INTERVAL_TIME))
     {
@@ -217,7 +217,7 @@ TaskLoop(SketchCanvasFromTrackBallTask)
 
         // literalプッシュ済みなのでフラグを上げる.
         isAlreadyLiteralPushed = true;
-        Serial.println("LiteralP");
+        //Serial.println("LiteralP");
     }
 }
 
@@ -226,7 +226,6 @@ TaskLoop(SketchCanvasFromTrackBallTask)
 TaskLoop(TrackBallLeftRotationTask)
 {
     ftDriver.ReadLeft();
-
     if (Acquire(trackBallLeftRotationSem, 1000))
     {
         ftDriver.AddLeftToSum();

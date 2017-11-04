@@ -16,15 +16,15 @@
 class FingerTrackDriver : public TrackBallDriver
 {
 private:
-    const float sensitivity = 16.0;
+    const float sensitivity = 4.0;
 
     // 最大周期
     // 人がトラックボールをゆっくり回せる限界周期
-    const int maxRange = 10000;
+    const int maxRange = 30000;
 
     // 最小周期
     // 人がトラックボールを速く回せる限界周期
-    const int minRange = 500;
+    const int minRange = 900;
 
     long leftSum = 0;
     long rightSum = 0;
@@ -34,8 +34,8 @@ private:
 public:
     const float range = 1.0 / minRange - 1.0 / maxRange;
 
-    double deltaX = 0;
-    double deltaY = 0;
+    double deltaX = 0.0;
+    double deltaY = 0.0;
 
 
 
@@ -140,9 +140,12 @@ public:
     void ReadLeft(void) {
 
         left = pulseIn(pinLFT, HIGH, timeout);
+        //Serial.println(left);
         if (left >= maxRange || left < minRange) {
+            //Serial.println("+");
             left = 0;
         }
+        //Serial.println("+");
     }
 
     //

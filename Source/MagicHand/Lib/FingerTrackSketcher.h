@@ -108,7 +108,7 @@ public:
 
     void CopyCanvas() {
 
-        SerialPrintCanvas(skCanvas);
+        //SerialPrintCanvas(skCanvas);
 
         ClearToCanvas();
 
@@ -122,7 +122,7 @@ public:
 
 
 
-            if ((fromSizeX < 3) && (fromSizeY < 3) && (fromSizeX > 1) && (fromSizeY > 1)) {
+            if ((fromSizeX <= 3) && (fromSizeY <= 3)) {
                 toCanvas->Dot(0, 0);
             }
 
@@ -171,11 +171,11 @@ public:
         //キャンバスのクリア
         ClearSketcherCanvas();
 
-        //パラメーターのクリア
+        //パラメータの初期化
         currentX = startPosX;
         currentY = startPosY;
-        deltaX = 0;
-        deltaY = 0;
+        deltaX = 0.0;
+        deltaY = 0.0;
     }
 
     void ClearSketcherCanvas() {
