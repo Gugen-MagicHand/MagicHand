@@ -110,7 +110,7 @@ public:
 
     void CopyCanvas() {
 
-        SerialPrintCanvas(skCanvas);
+        //SerialPrintCanvas(skCanvas);
 
         ClearToCanvas();
 
@@ -124,7 +124,7 @@ public:
 
 
 
-            if ((fromSizeX <= 3) && (fromSizeY <= 3)) {
+            if ((fromSizeX <= 2) && (fromSizeY <= 2)) {
                 toCanvas->Dot(0, 0);
             }
 

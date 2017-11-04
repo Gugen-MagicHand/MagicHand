@@ -99,8 +99,8 @@ TaskLoop(DiscriminatorTask)
 {
     Canvas *work;
     STROKE stroke;
-    int i;
 
+    bool isGet = false;
     //デバッグ表示用キャンバス
     Canvas outputCanvas(8, 8);
 
@@ -109,8 +109,9 @@ TaskLoop(DiscriminatorTask)
         if (canvasQueue.Peek(&work))
         {
             stroke = StrokeDiscriminator::Discriminate(*work);
-            //SerialPrintCanvas(*work);
             canvasQueue.Pop(&work);
+
+            isGet = true;
             //outputCanvas.Celput(strokePatterns[stroke]);
             //Serial.println(stroke);
             //デバッグ用関数。本番はコメントアウトする。
@@ -118,6 +119,13 @@ TaskLoop(DiscriminatorTask)
         }
         Release(canvasQueueSem);
     }
+
+    if (isGet) {
+
+        //SerialPrintCanvas(*work);
+        isGet = false;
+    }
+
 }
 
 //スケッチ関連のタスク----------------------------------------------------------------------
@@ -145,25 +153,25 @@ TaskLoop(SketchCanvasFromTrackBallTask)
     // --- トラックボールからdeltaX, deltaYを取得 --------------------
     if (Acquire(trackBallLeftRotationSem, 1000))
     {
-        ftDriver.AddLeftToDeltaX();
+        ftDriver.AddDeltaLeftToDeltaX();
         Release(trackBallLeftRotationSem);
     }
 
     if (Acquire(trackBallRightRotationSem, 1000))
     {
-        ftDriver.AddRightToDeltaX();
+        ftDriver.AddDeltaRightToDeltaX();
         Release(trackBallRightRotationSem);
     }
 
     if (Acquire(trackBallUpRotationSem, 1000))
     {
-        ftDriver.AddUpToDeltaY();
+        ftDriver.AddDeltaUpToDeltaY();
         Release(trackBallUpRotationSem);
     }
 
     if (Acquire(trackBallDownRotationSem, 1000))
     {
-        ftDriver.AddDownToDeltaY();
+        ftDriver.AddDeltaDownToDeltaY();
         Release(trackBallDownRotationSem);
     }
     ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
@@ -228,7 +236,7 @@ TaskLoop(TrackBallLeftRotationTask)
     ftDriver.ReadLeft();
     if (Acquire(trackBallLeftRotationSem, 1000))
     {
-        ftDriver.AddLeftToSum();
+        ftDriver.AddLeftToDelta();
         Release(trackBallLeftRotationSem);
     }
 }
@@ -241,7 +249,7 @@ TaskLoop(TrackBallRightRotationTask)
 
     if (Acquire(trackBallRightRotationSem, 1000))
     {
-        ftDriver.AddRightToSum();
+        ftDriver.AddRightToDelta();
         Release(trackBallRightRotationSem);
     }
 }
@@ -254,7 +262,7 @@ TaskLoop(TrackBallUpRotationTask)
 
     if (Acquire(trackBallUpRotationSem, 1000))
     {
-        ftDriver.AddUpToSum();
+        ftDriver.AddUpToDelta();
         Release(trackBallUpRotationSem);
     }
 }
@@ -267,7 +275,7 @@ TaskLoop(TrackBallDownRotationTask)
 
     if (Acquire(trackBallDownRotationSem, 1000))
     {
-        ftDriver.AddDownToSum();
+        ftDriver.AddDownToDelta();
         Release(trackBallDownRotationSem);
     }
 }
