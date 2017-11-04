@@ -68,7 +68,7 @@ void setup()
     CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
 
     //スケッチャー関連のタスク
-    //CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
+    CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
 
     //パターン認識のタスク
     CreateTaskLoopWithStackSize(DiscriminatorTask, LOW_PRIORITY, 200);
@@ -166,7 +166,6 @@ TaskLoop(SketchCanvasFromTrackBallTask)
         ftDriver.AddDownToDeltaY();
         Release(trackBallDownRotationSem);
     }
-
     ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
 
     ftDriver.ResetDeltaXY();
@@ -189,6 +188,7 @@ TaskLoop(SketchCanvasFromTrackBallTask)
         lastSketchTime = millis();
     }
 
+    //Serial.println(ftSketcher.DeltaXYStayZeroTime());
 
     if (!isAlreadyStrokePushed && (ftSketcher.DeltaXYStayZeroTime() > STROKE_INTERVAL_TIME))
     {

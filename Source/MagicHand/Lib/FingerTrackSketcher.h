@@ -47,10 +47,10 @@ public:
 
     bool IsDeltaXYZero() { return (deltaX == 0 && deltaY == 0); }
 
-    int DeltaX() { return deltaX; }
-    int DeltaY() { return deltaY; }
+    double DeltaX() { return deltaX; }
+    double DeltaY() { return deltaY; }
 
-    void SetDeltaXY(int deltaX, int deltaY) {
+    void SetDeltaXY(double deltaX, double deltaY) {
         this->deltaX += deltaX;
         this->deltaY += deltaY;
 
@@ -58,10 +58,12 @@ public:
         //Serial.println(deltaX);
         //Serial.println(deltaY);
 
-        if (!(deltaX == 0 && deltaY == 0)) {
+        if (!(deltaX == 0.0 && deltaY == 0.0)) {
             // deltaX, deltaYがともに0にならなかった時間を記録
             // ともに0になったときは更新されない
             deltaXYBecomeZeroStartTime = millis();
+
+            //Serial.println("+");
         }
     }
 
@@ -108,7 +110,7 @@ public:
 
     void CopyCanvas() {
 
-        //SerialPrintCanvas(skCanvas);
+        SerialPrintCanvas(skCanvas);
 
         ClearToCanvas();
 

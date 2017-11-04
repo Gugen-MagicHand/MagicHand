@@ -43,6 +43,7 @@ public:
 
     //セマフォ用に四方向を個別にdeltaX,deltaYに追加
     void AddLeftToDeltaX(void) {
+
         if (leftSum > 0) {
             deltaX += -sensitivity / leftSum / range;
             leftSum = 0;
@@ -72,11 +73,11 @@ public:
         }
     }
 
-    int GetDeltaX(void) {
+    double GetDeltaX(void) {
         return deltaX;
     }
 
-    int GetDeltaY(void) {
+    double GetDeltaY(void) {
         return deltaY;
     }
 
@@ -96,6 +97,8 @@ public:
 
 
     void AddLeftToSum(void) {
+
+        //Serial.println(left);
         leftSum += left;
     }
     void AddRightToSum(void) {
