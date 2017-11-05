@@ -122,7 +122,7 @@ TaskLoop(DiscriminatorTask)
 
     if (isGet) {
 
-        //SerialPrintCanvas(*work);
+        SerialPrintCanvas(*work);
         isGet = false;
     }
 
