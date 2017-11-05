@@ -13,7 +13,7 @@ SemaphoreHandle rightSemaphore;
 SemaphoreHandle upSemaphore;
 SemaphoreHandle downSemaphore;
 
-SemaphoreHandle serialSemaphore;
+//SemaphoreHandle serialSemaphore;
 
 
 
@@ -28,20 +28,20 @@ void setup() {
   CreateBinarySemaphore(upSemaphore);
   CreateBinarySemaphore(downSemaphore);
 
-  CreateBinarySemaphore(serialSemaphore);
+  //CreateBinarySemaphore(serialSemaphore);
 
   CreateTaskLoop(LeftTask, LOW_PRIORITY);
   CreateTaskLoop(RightTask, LOW_PRIORITY);
   CreateTaskLoop(UpTask, LOW_PRIORITY);
   CreateTaskLoop(DownTask, LOW_PRIORITY);
 
-  InitMainLoopStackSize(200);
-
-  Serial.println("TrackingStart!!");
+  Serial.print("a");
 }
 
 void loop() {
 
+  Serial.println("loop");
+/*
   if (Acquire(leftSemaphore, 1000)) {
     ftd.AddLeftToDeltaX();
     Release(leftSemaphore);
@@ -70,7 +70,7 @@ void loop() {
     ftd.ResetDeltaXY();
     Release(serialSemaphore);
   }
-  
+  */
 }
 
 
@@ -140,7 +140,7 @@ TaskLoop(UpTask) {
 //----------------------------------------------------------------------------
 
 //DownTask---------------------------------------------------------------------
-
+/*
 TaskLoop(DownTask) {
   ftd.ReadDown();
 
@@ -148,18 +148,18 @@ TaskLoop(DownTask) {
     ftd.AddDownToSum();
     Release(downSemaphore);
 
-    /*
-    if (Acquire(serialSemaphore, 1000)) {
+    
+      if (Acquire(serialSemaphore, 1000)) {
       Serial.println("down");
       Release(serialSemaphore);
       //Yield();
-    }
-    */
+      }
+    
 
   }
 
 }
-
+*/
 
 //-------------------------------------------------------------------------------
 
