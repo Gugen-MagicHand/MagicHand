@@ -19,6 +19,8 @@ CanvasQueue canvasQueue(10, 16, 16);
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
 
+Canvas testCanvas(16, 16);
+
 // --- タスク宣言 --------------------------------------------------
 
 //トラックボールの回転認識のタスク
@@ -100,30 +102,51 @@ TaskLoop(DiscriminatorTask)
     Canvas *work;
     STROKE stroke;
 
-    bool isGet = false;
-    //デバッグ表示用キャンバス
-    Canvas outputCanvas(8, 8);
+    enum STATE {
+        PEEKING,
+        DISCRIMINATING,
+        POPING
+    };
 
-    if (Acquire(canvasQueueSem, 1000))
-    {
-        if (canvasQueue.Peek(&work))
+    static STATE state = STATE::PEEKING;
+
+    switch (state) {
+    case STATE::PEEKING:
+
+        if (Acquire(canvasQueueSem, 1000))
         {
-            stroke = StrokeDiscriminator::Discriminate(*work);
-            canvasQueue.Pop(&work);
+            if (canvasQueue.Peek(&work))
+            {
+                state = STATE::DISCRIMINATING;
+            }
 
-            isGet = true;
-            //outputCanvas.Celput(strokePatterns[stroke]);
-            //Serial.println(stroke);
-            //デバッグ用関数。本番はコメントアウトする。
-            //SerialPrintCanvas(outputCanvas);
+            Release(canvasQueueSem);
         }
-        Release(canvasQueueSem);
-    }
 
-    if (isGet) {
+        break;
+
+    case STATE::DISCRIMINATING:
 
         SerialPrintCanvas(*work);
-        isGet = false;
+        stroke = StrokeDiscriminator::Discriminate(*work);
+
+        Serial.println(stroke);
+
+        state = STATE::POPING;
+
+        break;
+
+    case STATE::POPING:
+
+        if (Acquire(canvasQueueSem, 1000))
+        {
+            canvasQueue.Pop(&work);
+
+            state = STATE::PEEKING;
+
+            Release(canvasQueueSem);
+        }
+        break;
     }
 
 }
