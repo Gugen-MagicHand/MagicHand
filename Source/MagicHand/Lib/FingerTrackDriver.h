@@ -16,98 +16,109 @@
 class FingerTrackDriver : public TrackBallDriver
 {
 private:
-    const float sensitivity = 32.0;
+    const float sensitivity = 4.0;
+
+    const int X_AXIS_DIR = -1;
+    const int Y_AXIS_DIR = -1;
+
 
     // 最大周期
     // 人がトラックボールをゆっくり回せる限界周期
-    const int maxRange = 10000;
+    const int maxRange = 30000;
 
     // 最小周期
     // 人がトラックボールを速く回せる限界周期
-    const int minRange = 500;
+    const int minRange = 900;
 
-    long leftSum = 0;
-    long rightSum = 0;
-    long upSum = 0;
-    long downSum = 0;
+    double deltaLeft = 0.0;
+    double deltaRight = 0.0;
+    double deltaUp = 0.0;
+    double deltaDown = 0.0;
 
 public:
     const float range = 1.0 / minRange - 1.0 / maxRange;
 
-    int deltaX = 0;
-    int deltaY = 0;
+    double deltaX = 0.0;
+    double deltaY = 0.0;
 
 
 
 public:
 
     //セマフォ用に四方向を個別にdeltaX,deltaYに追加
-    void AddLeftToDeltaX(void) {
-        if (leftSum > 0) {
-            deltaX += -sensitivity / leftSum / range;
-            leftSum = 0;
-        }
+    void AddDeltaLeftToDeltaX(void) {
+
+        deltaX -= X_AXIS_DIR * deltaLeft;
+
+        deltaLeft = 0.0;
     }
 
-    void AddRightToDeltaX(void) {
-        if (rightSum > 0) {
+    void AddDeltaRightToDeltaX(void) {
 
-            deltaX += sensitivity / rightSum / range;
-            rightSum = 0;
-        }
+        deltaX += X_AXIS_DIR * deltaRight;
+
+        deltaRight = 0.0;
     }
 
-    void AddUpToDeltaY(void) {
-        if (upSum > 0) {
-            deltaY += -sensitivity / upSum / range;
-            upSum = 0;
-        }
+    void AddDeltaUpToDeltaY(void) {
+        deltaY += Y_AXIS_DIR * deltaUp;
+
+        deltaUp = 0.0;
     }
 
-    void AddDownToDeltaY(void) {
-        if (downSum > 0) {
+    void AddDeltaDownToDeltaY(void) {
+        deltaY -= Y_AXIS_DIR * deltaDown;
 
-            deltaY += sensitivity / downSum / range;
-            downSum = 0;
-        }
+        deltaDown = 0.0;
     }
 
-    int GetDeltaX(void) {
+    double GetDeltaX(void) {
         return deltaX;
     }
 
-    int GetDeltaY(void) {
+    double GetDeltaY(void) {
         return deltaY;
     }
 
     void ResetDeltaXY(void) {
-        deltaX = 0;
-        deltaY = 0;
+        deltaX = 0.0;
+        deltaY = 0, 0;
     }
 
     void ResetDeltaX(void) {
-        deltaX = 0;
+        deltaX = 0, 0;
     }
 
     void ResetDeltaY(void) {
-        deltaY = 0;
+        deltaY = 0, 0;
     }
 
 
 
-    void AddLeftToSum(void) {
-        leftSum += left;
+    void AddLeftToDelta(void) {
+
+        //Serial.println(left);
+
+        if (left > 0) {
+            deltaLeft += sensitivity / left / range;
+        }
     }
-    void AddRightToSum(void) {
-        rightSum += right;
+    void AddRightToDelta(void) {
+        if (right > 0) {
+            deltaRight += sensitivity / right / range;
+        }
     }
 
-    void AddUpToSum(void) {
-        upSum += up;
+    void AddUpToDelta(void) {
+        if (up > 0) {
+            deltaUp += sensitivity / up / range;
+        }
     }
 
-    void AddDownToSum(void) {
-        downSum += down;
+    void AddDownToDelta(void) {
+        if (down > 0) {
+            deltaDown += sensitivity / down / range;
+        }
     }
 
     //
@@ -140,9 +151,12 @@ public:
     void ReadLeft(void) {
 
         left = pulseIn(pinLFT, HIGH, timeout);
+        //Serial.println(left);
         if (left >= maxRange || left < minRange) {
+            //Serial.println("+");
             left = 0;
         }
+        //Serial.println("+");
     }
 
     //
