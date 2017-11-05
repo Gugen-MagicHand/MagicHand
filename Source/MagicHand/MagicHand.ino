@@ -2,7 +2,7 @@
 // Main header
 #include "Lib/MagicHand.h"
 
-static const unsigned long STROKE_INTERVAL_TIME = 300;
+static const unsigned long STROKE_INTERVAL_TIME = 200;
 static const unsigned long LITERAL_INTERVAL_TIME = 500;
 
 static const unsigned long SKETCH_INTERVAL_TIME = 10;
@@ -153,25 +153,25 @@ TaskLoop(SketchCanvasFromTrackBallTask)
     // --- トラックボールからdeltaX, deltaYを取得 --------------------
     if (Acquire(trackBallLeftRotationSem, 1000))
     {
-        ftDriver.AddDeltaLeftToDeltaX();
+        ftDriver.AddLeftSumToDeltaX();
         Release(trackBallLeftRotationSem);
     }
 
     if (Acquire(trackBallRightRotationSem, 1000))
     {
-        ftDriver.AddDeltaRightToDeltaX();
+        ftDriver.AddRightSumToDeltaX();
         Release(trackBallRightRotationSem);
     }
 
     if (Acquire(trackBallUpRotationSem, 1000))
     {
-        ftDriver.AddDeltaUpToDeltaY();
+        ftDriver.AddUpSumToDeltaY();
         Release(trackBallUpRotationSem);
     }
 
     if (Acquire(trackBallDownRotationSem, 1000))
     {
-        ftDriver.AddDeltaDownToDeltaY();
+        ftDriver.AddDownSumToDeltaY();
         Release(trackBallDownRotationSem);
     }
     ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
@@ -236,7 +236,7 @@ TaskLoop(TrackBallLeftRotationTask)
     ftDriver.ReadLeft();
     if (Acquire(trackBallLeftRotationSem, 1000))
     {
-        ftDriver.AddLeftToDelta();
+        ftDriver.AddLeftToSum();
         Release(trackBallLeftRotationSem);
     }
 }
@@ -249,7 +249,7 @@ TaskLoop(TrackBallRightRotationTask)
 
     if (Acquire(trackBallRightRotationSem, 1000))
     {
-        ftDriver.AddRightToDelta();
+        ftDriver.AddRightToSum();
         Release(trackBallRightRotationSem);
     }
 }
@@ -262,7 +262,7 @@ TaskLoop(TrackBallUpRotationTask)
 
     if (Acquire(trackBallUpRotationSem, 1000))
     {
-        ftDriver.AddUpToDelta();
+        ftDriver.AddUpToSum();
         Release(trackBallUpRotationSem);
     }
 }
@@ -275,7 +275,7 @@ TaskLoop(TrackBallDownRotationTask)
 
     if (Acquire(trackBallDownRotationSem, 1000))
     {
-        ftDriver.AddDownToDelta();
+        ftDriver.AddDownToSum();
         Release(trackBallDownRotationSem);
     }
 }
