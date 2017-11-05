@@ -16,7 +16,12 @@
 class FingerTrackDriver : public TrackBallDriver
 {
 private:
-    const float sensitivity = 32.0;
+    const double SENSITIVITY = 1.0;
+
+    const int X_AXIS_DIR = -1;
+    const int Y_AXIS_DIR = -1;
+
+    /*
 
     // 最大周期
     // 人がトラックボールをゆっくり回せる限界周期
@@ -25,6 +30,7 @@ private:
     // 最小周期
     // 人がトラックボールを速く回せる限界周期
     const int minRange = 500;
+    */
 
     long leftSum = 0;
     long rightSum = 0;
@@ -32,51 +38,52 @@ private:
     long downSum = 0;
 
 public:
-    const float range = 1.0 / minRange - 1.0 / maxRange;
+    //const float range = 1.0 / minRange - 1.0 / maxRange;
 
-    int deltaX = 0;
-    int deltaY = 0;
+    double deltaX = 0;
+    double deltaY = 0;
 
 
 
 public:
 
     //セマフォ用に四方向を個別にdeltaX,deltaYに追加
-    void AddLeftToDeltaX(void) {
+    void AddLeftSumToDeltaX(void) {
         if (leftSum > 0) {
-            deltaX -= leftSum;
+            deltaX -=  SENSITIVITY * X_AXIS_DIR * leftSum;
             leftSum = 0;
         }
     }
 
-    void AddRightToDeltaX(void) {
+    void AddRightSumToDeltaX(void) {
         if (rightSum > 0) {
 
-            deltaX += rightSum;
+            deltaX += SENSITIVITY * X_AXIS_DIR * rightSum;
             rightSum = 0;
         }
     }
 
-    void AddUpToDeltaY(void) {
+    void AddUpSumToDeltaY(void) {
         if (upSum > 0) {
-            deltaY -= upSum;
+
+            deltaY += SENSITIVITY * Y_AXIS_DIR * upSum;
             upSum = 0;
         }
     }
 
-    void AddDownToDeltaY(void) {
+    void AddDownSumToDeltaY(void) {
         if (downSum > 0) {
 
-            deltaY += downSum;
+            deltaY -= SENSITIVITY * Y_AXIS_DIR * downSum;
             downSum = 0;
         }
     }
 
-    int GetDeltaX(void) {
+    double GetDeltaX(void) {
         return deltaX;
     }
 
-    int GetDeltaY(void) {
+    double GetDeltaY(void) {
         return deltaY;
     }
 
