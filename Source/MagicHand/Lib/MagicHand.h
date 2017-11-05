@@ -2,6 +2,18 @@
 #ifndef MAGIC_HAND_H
 #define MAGIC_HAND_H
 
+
+
+// --- Debug ------------------------------
+
+//これはCanvasをシリアルに出力する関数を使うためのものです。本番はコメントアウトすること。
+#include "CanvasPrint.h"
+
+// End Debug -------
+
+
+
+
 // --- Track ball ------------------
 #include "FingerTrackDriver.h"
 #include "FingerTrackSketcher.h"
@@ -36,13 +48,5 @@
 
 // End Math ------
 
-
-
-// --- Debug ------------------------------
-
-//これはCanvasをシリアルに出力する関数を使うためのものです。本番はコメントアウトすること。
-#include "CanvasPrint.h"
-
-// End Debug -------
 
 #endif

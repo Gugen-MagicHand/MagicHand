@@ -147,7 +147,7 @@ public:
 
             // スコアを求める
             int score = CalculateCorrelationScore(pattern, target);
-            Serial.println(score);
+            //Serial.println(score);
             if (score >= 0 && score <= minScore) {
                 minScore = score;
 

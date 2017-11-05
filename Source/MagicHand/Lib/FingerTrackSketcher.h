@@ -9,123 +9,187 @@
 
 #include "SketcherCanvas.h"
 
+
+
+
 class FingerTrackSketcher {
 
-  private:
-    int currentX;
-    int currentY;
-    int deltaX;
-    int deltaY;
+private:
+    double currentX;
+    double currentY;
+
+    double deltaX;
+    double deltaY;
 
     const int skCanvasSizeX = 32;
     const int skCanvasSizeY = 32;
     const int startPosX = 15;
     const int startPosY = 15;
 
-  public:
-    bool pushFlag;
-    bool strokeEndFlag;
-    bool tokenEndFlag;
+public:
+    // deltaX, deltaYがともに0になった時間
+    unsigned long deltaXYBecomeZeroStartTime;
 
-    unsigned long deltaXYGetTime;
-
-  public:
+public:
     //skCanvasは四つ角をとれるようにしたCanvasの拡張。
     SketcherCanvas skCanvas;
-    
+
     //toCanvasにはqueueからキャンバスの参照をコピーする。
     Canvas *toCanvas;
 
     FingerTrackSketcher() {
-      currentX = startPosX;
-      currentY = startPosY;
-      deltaX = 0;
-      deltaY = 0;
-      skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
-
-      pushFlag = false;
-      strokeEndFlag = false;
-      tokenEndFlag = false;
+        currentX = startPosX;
+        currentY = startPosY;
+        deltaX = 0;
+        deltaY = 0;
+        skCanvas.SetSize(skCanvasSizeX, skCanvasSizeY);
     }
 
-    void SetDeltaXY(int deltaX, int deltaY) {
-      this->deltaX = deltaX;
-      this->deltaY = deltaY;
+    bool IsDeltaXYZero() { return (deltaX == 0 && deltaY == 0); }
 
-      //文字認識のタイミングを計る時間計測開始
-      deltaXYGetTime = millis();
+    double DeltaX() { return deltaX; }
+    double DeltaY() { return deltaY; }
+
+    void SetDeltaXY(double deltaX, double deltaY) {
+        this->deltaX += deltaX;
+        this->deltaY += deltaY;
+
+
+        //Serial.println(deltaX);
+        //Serial.println(deltaY);
+
+        if (!(deltaX == 0.0 && deltaY == 0.0)) {
+            // deltaX, deltaYがともに0にならなかった時間を記録
+            // ともに0になったときは更新されない
+            deltaXYBecomeZeroStartTime = millis();
+
+            //Serial.println("+");
+        }
     }
 
 
     void Sketch() {
-      if ((deltaX < 3) && (deltaY < 3)) {
+        // これでは, 合わされば大きくなる微小な速度の描画が反映されない.
+        // 
+        /*
+        if ((abs(deltaX) < 3) && (abs(deltaY) < 3)) {
+            // deltaX, deltaYがともに3より小さい場合は,
+            // 描画を行わない.
+        }
+        else*/
 
-      } else {
-        skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
-        currentX += deltaX;
-        currentY += deltaY;
-      }
-      deltaX = 0;
-      deltaY = 0;
+
+        if (deltaX != 0.0 || deltaY != 0.0)
+        {
+            // deltaX, deltaYが0ではないときに, 描画を始める.
+
+            skCanvas.Line(currentX, currentY, currentX + deltaX, currentY + deltaY);
+            currentX += deltaX;
+            currentY += deltaY;
+        }
+
+        deltaX = 0;
+        deltaY = 0;
     }
 
-    unsigned long GetTimeFromDeltaXYGetTime(){
-      return millis() - deltaXYGetTime;
+    //
+    // @return:
+    //  deltaX, deltaYがともに0である時間を取得する
+    //
+    unsigned long DeltaXYStayZeroTime() {
+        return millis() - deltaXYBecomeZeroStartTime;
     }
 
 
 
     //コピー先のキャンバスを設定
     void SetToCanvas(Canvas *toCanvas) {
-      this->toCanvas = toCanvas;
+        this->toCanvas = toCanvas;
     }
 
 
     void CopyCanvas() {
-      int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
-      int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
 
-      ClearToCanvas();
+        //SerialPrintCanvas(skCanvas);
 
-      if ((fromSizeX < 3) && (fromSizeY < 3)) {
-        toCanvas->Dot(0,0);
-      } else {
-        int toSizeX;
-        int toSizeY;
+        ClearToCanvas();
 
-        if (fromSizeX > fromSizeY) {
-          toSizeX = toCanvas->SizeX();
-          toSizeY = fromSizeY * toSizeX / fromSizeX;
-        } else {
-          toSizeY = toCanvas->SizeY();
-          toSizeX = fromSizeX * toSizeY / fromSizeY;
+        if (skCanvas.SeekCorner()) {
+
+            // 正常にコーナを取得できた時
+
+            // 左上座標, 右下座標を取得し, コピー元のサイズを計算する.
+            int fromSizeX = skCanvas.GetLowerRightX() - skCanvas.GetUpperLeftX() + 1;
+            int fromSizeY = skCanvas.GetLowerRightY() - skCanvas.GetUpperLeftY() + 1;
+
+
+
+            if ((fromSizeX <= 2) && (fromSizeY <= 2)) {
+                toCanvas->Dot(0, 0);
+            }
+
+
+            else {
+                int toSizeX;
+                int toSizeY;
+
+                if (fromSizeX > fromSizeY) {
+                    toSizeX = toCanvas->SizeX();
+                    toSizeY = fromSizeY * (double)toSizeX / fromSizeX;
+
+                    if (toSizeY <= 0) {
+                        toSizeY = 1;
+                    }
+                }
+                else {
+                    toSizeY = toCanvas->SizeY();
+                    toSizeX = fromSizeX * (double)toSizeY / fromSizeY;
+
+                    if (toSizeX <= 0) {
+                        toSizeX = 1;
+                    }
+                }
+
+                //キャンバスのコピー
+                toCanvas->Pos(0, 0);
+                /*
+                Serial.println(skCanvas.GetUpperLeftX());
+                Serial.println(skCanvas.GetUpperLeftY());
+                Serial.println(fromSizeX);
+                Serial.println(fromSizeY);
+                Serial.println(toSizeX);
+                Serial.println(toSizeY);
+                */
+                toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
+            }
+
         }
 
-        //キャンバスのコピー
-        toCanvas->Pos(0, 0);
-        toCanvas->Zoom(toSizeX, toSizeY, skCanvas, skCanvas.GetUpperLeftX(), skCanvas.GetUpperLeftY(), fromSizeX, fromSizeY);
-      }
 
-      //キャンバスのクリア
-      ClearSketcherCanvas();
 
-      //パラメーターのクリア
-      currentX = 0;
-      currentY = 0;
-      deltaX = 0;
-      deltaY = 0;
+
+        //SerialPrintCanvas(*toCanvas);
+
+        //キャンバスのクリア
+        ClearSketcherCanvas();
+
+        //パラメータの初期化
+        currentX = startPosX;
+        currentY = startPosY;
+        deltaX = 0.0;
+        deltaY = 0.0;
     }
 
     void ClearSketcherCanvas() {
-      skCanvas.color = false;
-      skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
-      skCanvas.color = true;
+        skCanvas.color = false;
+        skCanvas.Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
+        skCanvas.color = true;
     }
 
-    void ClearToCanvas(){
-      toCanvas->color = false;
-      toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
-      toCanvas->color = true;
+    void ClearToCanvas() {
+        toCanvas->color = false;
+        toCanvas->Boxf(0, 0, skCanvas.SizeX(), skCanvas.SizeY());
+        toCanvas->color = true;
     }
 
 };
