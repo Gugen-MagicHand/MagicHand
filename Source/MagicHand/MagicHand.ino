@@ -53,7 +53,7 @@ SemaphoreHandle canvasQueueSem;
 
 // End
 
-
+/*
 // キャンバスの内容をシリアルモニタに描画
 void Draw(Canvas &canvas)
 {
@@ -71,7 +71,7 @@ void Draw(Canvas &canvas)
         Serial.println("");
     }
 }
-
+*/
 void setup()
 {
     //シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
@@ -146,12 +146,12 @@ TaskLoop(DiscriminatorTask)
         break;
 
     case STATE::DISCRIMINATING:
-        //SerialPrintCanvas(*work);
-        Draw(*work);
+        SerialPrintCanvas(*work);
+        //Draw(*work);
         Serial.println("");
-        //stroke = StrokeDiscriminator::Discriminate(*work);
+        stroke = StrokeDiscriminator::Discriminate(*work);
 
-        //Serial.println(stroke);
+        Serial.println(stroke);
         state = STATE::POPING;
 
         break;
@@ -262,7 +262,7 @@ TaskLoop(SketchCanvasFromTrackBallTask)
 
         if (Acquire(canvasQueueSem, 1000))
         {
-            //canvasQueue.Push();
+            canvasQueue.Push();
             Release(canvasQueueSem);
         }
 

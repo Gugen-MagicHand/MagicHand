@@ -2,7 +2,7 @@
 #define PATTERN_H
 
 
-static const uint16_t strokePatterns[][256] PROGMEM = {
+static const uint8_t strokePatterns[][256] PROGMEM = {
 
     // Space
     {
