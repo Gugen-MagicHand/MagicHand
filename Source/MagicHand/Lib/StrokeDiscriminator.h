@@ -130,7 +130,7 @@ public:
         int minScore = SCORE_INF;
         STROKE similarStroke = STROKE::STROKE_SPACE;
 
-        Canvas pattern(8, 8);
+        Canvas pattern(16, 16);
         
 
 
@@ -138,7 +138,7 @@ public:
         for (int i = 0; i < STROKE_PATTERNS_COUNT; i++) {
             // 白紙に戻す
             pattern.color = false;
-            pattern.Boxf(0, 0, 7, 7);
+            pattern.Boxf(0, 0, 15, 15);
 
             // パターン画像を描画する
             pattern.color = true;
