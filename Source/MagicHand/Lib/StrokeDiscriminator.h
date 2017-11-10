@@ -11,149 +11,148 @@
 
 #include "Canvas.h"
 
-#include "Pattern.h"
+#include "StrokeBaseFeatures.h"
 #include "Stroke.h"
+#include "TinyHOG.h"
 
 
 class StrokeDiscriminator {
 private:
 
-    static const int SCORE_INF = 10000;
+    static const int BASE_FEATURE_MAX_VAL = 255;
 
-    //
-    // 指定されたキャンバスがベース指定されたキャンバスにどれだけ似ているかを,
-    // スコア値によって表現します.
-    //
-    static int CalculateCorrelationScore(Canvas &base, Canvas &compare) {
-        if (base.SizeX() != compare.SizeX() || base.SizeY() != compare.SizeY()) {
-            return -1;
+    static const int IMAGE_SIZE = 15;
+    static const int CELL_SIZE = 5;
+    static const int ORIENTATION = 4;
+
+    static const int FEATURES_COUNT = (IMAGE_SIZE / CELL_SIZE) * (IMAGE_SIZE / CELL_SIZE) * ORIENTATION;
+
+    static const int EACH_BASE_COUNT = 5;
+
+
+    static float compareImage[IMAGE_SIZE * IMAGE_SIZE];
+    static float compareFeatures[FEATURES_COUNT];
+
+
+
+    static float CalculateSimilarity(const uint8_t *baseFeatures, float *compareFeatures, int featuresCount) __attribute__((__optimize__("O2"))){
+
+        float sumOfBaseFeatures = 0.0;
+        float sumOfCompareFeatures = 0.0;
+        float dot = 0.0;
+
+        for (int i = 0; i < featuresCount; i++) {
+            float baseFeature = ((unsigned char)pgm_read_byte_near(&baseFeatures[i])) / 255.0;
+            float compareFeature = compareFeatures[i];
+
+            sumOfBaseFeatures += baseFeature * baseFeature;
+            sumOfCompareFeatures += compareFeature * compareFeature;
+
+            dot += baseFeature * compareFeature;
+
+            //Serial.println(baseFeature);
+            //Serial.println((int)pgm_read_byte_near(&baseFeatures[i]));
         }
 
-        int sizeX = base.SizeX();
-        int sizeY = base.SizeY();
-
-        int score = 0;
-
-        for (int x = 0; x < sizeX; x++) {
-            for (int y = 0; y < sizeY; y++) {
-
-                int baseDotCount = 0;
-                int compareDotCount = 0;
-
-                // ---- スキャン窓 -------------
-                for (int i = 0; i <= 1; i++) {
-                    for (int j = 0; j <= 1; j++) {
-
-                        // 範囲チェック
-                        if ((x + i < 0) || (x + i >= sizeX)
-                            || (y + j < 0) || (y + j >= sizeY)) {
-                            continue;
-                        }
-
-                        if (compare.ReadPixel(x + i, y + j)) {
-                            compareDotCount++;
-                        }
-
-                        if (base.ReadPixel(x + i, y + j)) {
-                            baseDotCount++;
-                        }
-                    }
-
-                }
-                // End スキャン窓 -------
-
-                score += (compareDotCount - baseDotCount) * (compareDotCount - baseDotCount);
-
-
-                /*
-                if (base.ReadPixel(x, y) != compare.ReadPixel(x, y)) {
-                    score += 1;
-                }
-                */
-
-                /*
-
-                bool isDetected = false;
-
-                // ---- 基準点と周り8近傍を調べる -------------
-                for (int i = -1; i <= 1; i++) {
-                    for (int j = -1; j <= 1; j++) {
-
-                        // 範囲チェック
-                        if ((i == 0 && j == 0) || (x + i < 0) || (x + i >= sizeX)
-                            || (y + j < 0) || (y + j >= sizeY)) {
-                            continue;
-                        }
-
-                        // 異なる場合
-                        if (base.ReadPixel(x + i, y + j) != canvasB.ReadPixel(x + i, y + j)) {
-                            
-                            if (i == 0 && j == 0) {
-                                score += 2;
-                            }
-                            else {
-                                score += 1;
-                            }
-
-                            isDetected = true;
-                        }
-
-                        if (isDetected) {
-                            break;
-                        }
-                    
-                    
-                    }
-
-                    if (isDetected) {
-                        break;
-                    }
-                }
-
-                // End 自分と周り8近傍を調べる -------
-                */
-
-            }
+        // 両方点のとき
+        if (sumOfBaseFeatures == 0.0 && sumOfCompareFeatures == 0.0) {
+            return 1.0;
         }
 
+        // 片方が点で, 他方がベクトルのとき
+        if ((sumOfBaseFeatures == 0.0 || sumOfCompareFeatures == 0.0)
+            && (sumOfBaseFeatures != sumOfCompareFeatures)) {
+            return 0.0;
+        }
 
-        return score;
+        return dot / sqrt((sumOfBaseFeatures) * (sumOfCompareFeatures));
     }
 
 
 public:
 
-    static const int STROKE_PATTERNS_COUNT = 17;
+    static const int STROKE_COUNT = 17;
 
     static STROKE Discriminate(Canvas &target) {
+        // Spaceとdotはパターンが決まっている.
+        // Spaceはキャンバス内に何も点が打たれていないとき,
+        // Dotは左上のみ点が打たれている場合である.
+        //
+        // まずこの二つを判別する.
 
-        int minScore = SCORE_INF;
+        bool isSpace = true;
+        bool isDot = true;
+
+        // baseImageにキャンバスの内容を複製
+        for (int y = 0; y < IMAGE_SIZE; y++) {
+            for (int x = 0; x < IMAGE_SIZE; x++) {
+
+                if (target.ReadPixel(x, y)) {
+                    compareImage[x + y * IMAGE_SIZE] = 1.0;
+
+                    // どこかに点が打たれたので, Spaceフラグを下す.
+                    isSpace = false;
+
+                    if (x != 0 || y != 0) {
+                        // 左上以外に点が打たれたので, Dotフラグを下す.
+                        isDot = false;
+                    }
+                }
+                else {
+                    compareImage[x + y * IMAGE_SIZE] = 0.0;
+                }
+            }
+        }
+
+        if (isSpace) {
+            return STROKE::STROKE_SPACE;
+        }
+        else if (isDot) {
+            return STROKE::STROKE_DOT;
+        }
+
+        // HOG特徴を求める
+        TinyHOG::HOG(compareImage, compareFeatures, IMAGE_SIZE, IMAGE_SIZE, CELL_SIZE, ORIENTATION);
+
+
+        for (int i = 0; i < FEATURES_COUNT / ORIENTATION; i++) {
+            for (int j = 0; j < ORIENTATION; j++) {
+                Serial.print(compareFeatures[i * ORIENTATION + j], 4);
+                Serial.print(", ");
+            }
+            Serial.println("");
+        }
+        Serial.println("-");
+
+        Serial.println("Sim:");
+
+        float maxSimilarity = 0.0;
         STROKE similarStroke = STROKE::STROKE_SPACE;
 
-        Canvas pattern(16, 16);
-        
+        for (int stroke = 2; stroke < STROKE_COUNT; stroke++) {
+            // それぞれのBase開始インデックス(ここから複数のベースがある)を求める.
+            int baseStartIndex = (stroke - 2) * EACH_BASE_COUNT;
 
+            float similarity = 0.0;
 
+            for (int i = 0; i < EACH_BASE_COUNT; i++) {
+                // 一つの文字に対するBaseそれぞれについて
 
-        for (int i = 0; i < STROKE_PATTERNS_COUNT; i++) {
-            // 白紙に戻す
-            pattern.color = false;
-            pattern.Boxf(0, 0, 15, 15);
-
-            // パターン画像を描画する
-            pattern.color = true;
-            pattern.Pos(0, 0);
-            pattern.Celput(strokePatterns[i]);
-
-            // スコアを求める
-            int score = CalculateCorrelationScore(pattern, target);
-            //Serial.println(score);
-            if (score >= 0 && score <= minScore) {
-                minScore = score;
-
-                similarStroke = (STROKE)i;
+                similarity += CalculateSimilarity(strokeBaseFeatures[baseStartIndex + i], compareFeatures, FEATURES_COUNT);
+                    //Serial.println((int)pgm_read_byte_near(&strokeBaseFeatures[baseStartIndex + i]));
             }
-            
+
+            similarity /= EACH_BASE_COUNT;
+
+            if (similarity >= maxSimilarity) {
+                maxSimilarity = similarity;
+
+                similarStroke = (STROKE)stroke;
+            }
+
+            Serial.print(stroke);
+            Serial.print(": ");
+            Serial.println(similarity, 4);
         }
 
         return similarStroke;
@@ -162,5 +161,9 @@ public:
 };
 
 
+
+float StrokeDiscriminator::compareImage[IMAGE_SIZE * IMAGE_SIZE];
+
+float StrokeDiscriminator::compareFeatures[FEATURES_COUNT];
 
 #endif

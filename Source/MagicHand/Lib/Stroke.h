@@ -11,7 +11,7 @@ enum STROKE {
     STROKE_3,
     STROKE_PART_OF_4,
     STROKE_PART_OF_5,
-    STRROKE_6,
+    STROKE_6,
     STROKE_PART_OF_7,
     STROKE_8,
     STROKE_9,
