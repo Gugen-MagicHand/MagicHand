@@ -36,7 +36,7 @@
 // End Data structure --------
 
 // --- Pattern Recognition ---------
-
+#include "Stroke.h"
 #include "StrokeDiscriminator.h"
 
 // End Pattern Recognition -----

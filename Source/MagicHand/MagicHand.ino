@@ -14,12 +14,12 @@ FingerTrackDriver ftDriver;
 FingerTrackSketcher ftSketcher;
 
 //CanvasQueueを用意
-CanvasQueue canvasQueue(10, 16, 16);
+CanvasQueue canvasQueue(10, 15, 15);
 
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
 
-Canvas testCanvas(16, 16);
+//Canvas testCanvas(16, 16);
 
 // --- タスク宣言 --------------------------------------------------
 
@@ -52,6 +52,25 @@ SemaphoreHandle trackBallDownRotationSem;
 SemaphoreHandle canvasQueueSem;
 
 // End
+
+
+// キャンバスの内容をシリアルモニタに描画
+void Draw(Canvas &canvas)
+{
+    for (int y = 0; y < canvas.SizeY(); y++)
+    {
+        for (int x = 0; x < canvas.SizeX(); x++)
+        {
+            if (canvas.ReadPixel(x, y)) {
+                Serial.print("@");
+            }
+            else {
+                Serial.print("_");
+            }
+        }
+        Serial.println("");
+    }
+}
 
 void setup()
 {
@@ -96,8 +115,9 @@ void loop()
 {
 }
 
+
 //パターン認識のタスク----------------------------------------------------------------------
-TaskLoop(DiscriminatorTask)
+TaskLoop(DiscriminatorTask) 
 {
     Canvas *work;
     STROKE stroke;
@@ -118,20 +138,21 @@ TaskLoop(DiscriminatorTask)
             if (canvasQueue.Peek(&work))
             {
                 state = STATE::DISCRIMINATING;
-            }
 
+            }
             Release(canvasQueueSem);
+            Yield();
         }
 
         break;
 
     case STATE::DISCRIMINATING:
-
         SerialPrintCanvas(*work);
+        //Draw(*work);
+        //Serial.println("-");
         stroke = StrokeDiscriminator::Discriminate(*work);
 
         Serial.println(stroke);
-
         state = STATE::POPING;
 
         break;
