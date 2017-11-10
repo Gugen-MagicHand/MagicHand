@@ -14,7 +14,7 @@ FingerTrackDriver ftDriver;
 FingerTrackSketcher ftSketcher;
 
 //CanvasQueueを用意
-CanvasQueue canvasQueue(10, 16, 16);
+CanvasQueue canvasQueue(10, 15, 15);
 
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
@@ -53,7 +53,7 @@ SemaphoreHandle canvasQueueSem;
 
 // End
 
-/*
+
 // キャンバスの内容をシリアルモニタに描画
 void Draw(Canvas &canvas)
 {
@@ -65,13 +65,13 @@ void Draw(Canvas &canvas)
                 Serial.print("@");
             }
             else {
-                Serial.print(" ");
+                Serial.print("_");
             }
         }
         Serial.println("");
     }
 }
-*/
+
 void setup()
 {
     //シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
@@ -148,7 +148,7 @@ TaskLoop(DiscriminatorTask)
     case STATE::DISCRIMINATING:
         SerialPrintCanvas(*work);
         //Draw(*work);
-        Serial.println("");
+        //Serial.println("-");
         stroke = StrokeDiscriminator::Discriminate(*work);
 
         Serial.println(stroke);

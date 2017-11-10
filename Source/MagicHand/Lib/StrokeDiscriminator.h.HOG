@@ -1,0 +1,165 @@
+/*
+//
+// 更新履歴:
+//  2017/11/3:
+//   初期版完成
+*/
+
+
+#ifndef STROKE_DISCRIMINATOR
+#define STROKE_DISCRIMINATOR
+
+#include "Canvas.h"
+
+#include "StrokeHOGFeatures.h"
+#include "Stroke.h"
+#include "HOG.h"
+
+
+class StrokeDiscriminator {
+private:
+
+    static const int SCORE_INF = 10000;
+
+    static const int HOG_FEATURE_MAX_VAL = 255;
+
+    static const int IMAGE_SIZE = 15;
+
+    static const int HOG_FEATURES_COUNT = 81;
+
+
+    static const int CELL_SIZE = 5;
+    static const int BLOCK_SIZE = 3;
+    static const int ORIENTATION = 9;
+
+
+    static double baseImage[IMAGE_SIZE * IMAGE_SIZE];
+
+    static DSP::HOG::HOG_Feature baseFeatures[HOG_FEATURES_COUNT];
+
+    //
+
+    static float CalculateSimilarity(uint8_t *compareFeatures) {
+        /*
+        
+        float score = 0.0;
+        for (int i = 0; i < HOG_FEATURES_COUNT; i++) {
+            float compareFeature = (unsigned char)pgm_read_byte_near(&compareFeatures[i]) / (float)HOG_FEATURE_MAX_VAL;
+            float baseFeature = (baseFeatures[i].featureVal);
+
+            score += abs(baseFeature - compareFeature);
+        }
+        
+        return score;
+        */
+        
+        float sumOfBaseFeatures = 0.0;
+        float sumOfCompareFeatures = 0.0;
+        float dot = 0.0;
+
+        for (int i = 0; i < HOG_FEATURES_COUNT; i++) {
+            float compareFeature = ((unsigned char)pgm_read_byte_near(&compareFeatures[i])) / (float)HOG_FEATURE_MAX_VAL;
+
+            sumOfBaseFeatures += baseFeatures[i].featureVal * baseFeatures[i].featureVal;
+            sumOfCompareFeatures += compareFeature * compareFeature;
+
+            dot += baseFeatures[i].featureVal * compareFeature;
+        }
+        
+        // 両方点のとき
+        if (sumOfBaseFeatures == 0.0 && sumOfCompareFeatures == 0.0) {
+            return 1.0;
+        }
+
+        // 片方が点で, 他方がベクトルのとき
+        if ((sumOfBaseFeatures == 0.0 || sumOfCompareFeatures == 0.0)
+            && (sumOfBaseFeatures != sumOfCompareFeatures)) {
+            return -1.0;
+        }
+
+
+
+        return dot / sqrt((sumOfBaseFeatures) * (sumOfCompareFeatures));
+        
+    }
+
+
+public:
+
+    static const int STROKE_COUNT = 17;
+
+    static STROKE Discriminate(Canvas &target) {
+        // baseImageにキャンバスの内容を複製
+        for (int y = 0; y < IMAGE_SIZE; y++) {
+            for (int x = 0; x < IMAGE_SIZE; x++) {
+                if (target.ReadPixel(x, y)) {
+                    baseImage[x + y * IMAGE_SIZE] = 1.0;
+                }
+                else {
+                    baseImage[x + y * IMAGE_SIZE] = 0.0;
+                }
+            }
+        }
+
+
+        // HOG特徴を求める
+        DSP::HOG::HOG(baseImage, baseFeatures, IMAGE_SIZE, IMAGE_SIZE, CELL_SIZE, BLOCK_SIZE, ORIENTATION);
+
+        
+        for (int i = 0; i < HOG_FEATURES_COUNT; i++) {
+            Serial.println(baseFeatures[i].featureVal);
+        }
+        Serial.println("-");
+        
+        float maxSimilarity = -1.0;
+        STROKE similarStroke = STROKE::STROKE_SPACE;
+
+        for (int i = 0; i < STROKE_COUNT; i++) {
+            // 各ストロークごとにベースと比較する
+
+            // 類似度を求める
+            float similarity = CalculateSimilarity((uint8_t *)&strokeHOGFeatures[i]);
+
+            Serial.println(similarity);
+
+            if (similarity >= maxSimilarity) {
+                maxSimilarity = similarity;
+
+                similarStroke = (STROKE)i;
+
+            }
+        }
+
+        return similarStroke;
+        
+        /*
+        int minScore = 0;
+        STROKE similarStroke = STROKE::STROKE_SPACE;
+
+        for (int i = 0; i < STROKE_COUNT; i++) {
+
+            // スコアを求める
+            int score = CalculateSimilarity((uint8_t *)&strokeHOGFeatures[i]);
+
+            Serial.println(score);
+            if (score >= 0 && score <= minScore) {
+                minScore = score;
+
+                similarStroke = (STROKE)i;
+            }
+
+        }
+        
+        return similarStroke;
+        */
+    }
+
+};
+
+
+
+double StrokeDiscriminator::baseImage[IMAGE_SIZE * IMAGE_SIZE];
+
+DSP::HOG::HOG_Feature StrokeDiscriminator::baseFeatures[HOG_FEATURES_COUNT];
+
+#endif
