@@ -10,9 +10,46 @@
 float image[IMAGE_SIZE * IMAGE_SIZE];
 float features[FEATURES_COUNT];
 
+
+void loop()  __attribute__((__optimize__("O2")));
+
+float CalculateSimilarity(const uint8_t *baseFeatures, float *compareFeatures, int featuresCount) {
+
+    float sumOfBaseFeatures = 0.0;
+    float sumOfCompareFeatures = 0.0;
+    float dot = 0.0;
+
+    for (int i = 0; i < featuresCount; i++) {
+        float baseFeature = ((unsigned char)pgm_read_byte_near(&baseFeatures[i])) / 255.0;
+        float compareFeature = compareFeatures[i];
+
+        sumOfBaseFeatures += baseFeature * baseFeature;
+        sumOfCompareFeatures += compareFeature * compareFeature;
+
+        dot += baseFeature * compareFeature;
+
+        //Serial.println(baseFeature);
+    }
+
+    // 両方点のとき
+    if (sumOfBaseFeatures == 0.0 && sumOfCompareFeatures == 0.0) {
+        return 1.0;
+    }
+
+    // 片方が点で, 他方がベクトルのとき
+    if ((sumOfBaseFeatures == 0.0 || sumOfCompareFeatures == 0.0)
+        && (sumOfBaseFeatures != sumOfCompareFeatures)) {
+        return 0.0;
+    }
+
+    return dot / sqrt((sumOfBaseFeatures) * (sumOfCompareFeatures));
+}
+
+
 void setup() {
     Serial.begin(19200);
 
+    // テストデータ読み込み
     for (int y = 0; y < IMAGE_SIZE; y++) {
         for (int x = 0; x < IMAGE_SIZE; x++) {
             if (pgm_read_byte_near(&test[y * IMAGE_SIZE + x])) {
@@ -24,6 +61,7 @@ void setup() {
         }
     }
 
+    // テストデータ表示
     for (int y = 0; y < IMAGE_SIZE; y++) {
         for (int x = 0; x < IMAGE_SIZE; x++) {
             if (image[x + y * IMAGE_SIZE] >= 1.0) {
@@ -32,10 +70,15 @@ void setup() {
             else {
                 Serial.print(" ");
             }
-           
+
         }
         Serial.println("");
     }
+
+    //InitMainLoopStackSize(100);
+}
+
+void loop() {
 
     TinyHOG::HOG(image, features, IMAGE_SIZE, IMAGE_SIZE, CELL_SIZE, ORIENTAION);
 
@@ -44,14 +87,14 @@ void setup() {
     // HOG特徴量表示
     for (int i = 0; i < FEATURES_COUNT / ORIENTAION; i++) {
         for (int j = 0; j < ORIENTAION; j++) {
-            Serial.print(features[i * ORIENTAION + j]);
+            Serial.print(features[i * ORIENTAION + j], 4);
             Serial.print(", ");
         }
         Serial.println("");
     }
-}
 
-void loop() {
-  // put your main code here, to run repeatedly:
+    float similarity = CalculateSimilarity(baseTest, features, FEATURES_COUNT);
 
+    Serial.println(similarity, 4);
+    while (true);
 }

@@ -19,7 +19,7 @@ CanvasQueue canvasQueue(10, 15, 15);
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
 
-Canvas testCanvas(16, 16);
+//Canvas testCanvas(16, 16);
 
 // --- タスク宣言 --------------------------------------------------
 
@@ -115,8 +115,9 @@ void loop()
 {
 }
 
+
 //パターン認識のタスク----------------------------------------------------------------------
-TaskLoop(DiscriminatorTask)
+TaskLoop(DiscriminatorTask) 
 {
     Canvas *work;
     STROKE stroke;
