@@ -96,6 +96,8 @@ public:
 			//結果のタイプをセット
 			SetResultType();
 
+			//Serial.print(resultIsOperator);
+
 			//結果がオペランドの時
 			if (!resultIsOperator) {
 
@@ -229,6 +231,9 @@ public:
 
 
 		}
+
+		//Serial.println(resultIsOperator);
+		//Serial.println();
 	}
 
 

@@ -7,11 +7,15 @@ STROKE strokes[] = {
 	STROKE_PART_OF_7,
 	STROKE_SPACE,
 	STROKE_VERTICAL_LINE,
+	STROKE_PART_OF_7,
+	STROKE_SPACE,
+	STROKE_VERTICAL_LINE,
 	STROKE_HORIZONTAL_LINE,
 	STROKE_SPACE,
 	STROKE_6,
 	STROKE_SPACE,
-	STROKE_HORIZONTAL_LINE,
+	STROKE_8,
+	STROKE_SPACE,
 	STROKE_HORIZONTAL_LINE,
 	STROKE_SPACE
 };
@@ -25,6 +29,8 @@ void setup() {
 
 void loop() {
 	for (int i = 0; i < (sizeof(strokes) / sizeof(strokes[0])); i++) {
+
+
 		StrokeAssembler::Assemble(strokes[i]);
 
 
@@ -43,20 +49,28 @@ void loop() {
 		Serial.println(StrokeAssembler::isNegativeNumber);
 		Serial.print("started");
 		Serial.println(StrokeAssembler::started);
-		Serial.println();
 		*/
+
+		//Serial.println(StrokeAssembler::resultIsOperator);
 
 
 		if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
+
+			//Serial.println("SUCCESS");
+
 			if (StrokeAssembler::GetResultIsOperator()) {
+				//Serial.println("OPERATOR");
 				frac = StrokeAssembler::GetResultOperand();
-				Serial.print(frac.ToString());
-			}
-			else {
 				op = StrokeAssembler::GetResultOperator();
+
+				Serial.print(frac.ToString());
+				Serial.println();
 				Serial.print(op->token);
+				Serial.println();
 			}
 		}
+
+		//Serial.println();
 
 	}
 
