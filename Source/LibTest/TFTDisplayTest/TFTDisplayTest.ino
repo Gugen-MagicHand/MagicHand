@@ -57,6 +57,7 @@ void loop() {
   pushResult = cal.TopOfOperatorPointerStack(&outputOperator);
   if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
   tft.print(outputOperator->token);
+  Serial.println(outputOperator->token);
   pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
   }
 
@@ -71,6 +72,7 @@ void loop() {
   pushResult = cal.TopOfOperatorPointerStack(&outputOperator);
   if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
   tft.print(outputOperator->token);
+  Serial.println(outputOperator->token);
   pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
   }
   
