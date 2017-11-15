@@ -6,7 +6,8 @@
 
 #include <string.h>
 
-class Operator {
+class Operator
+{
 public:
     enum ASSOCIATIVITY {
         RIGHT,

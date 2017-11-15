@@ -18,43 +18,55 @@ DeclareTaskLoop(Blinker);
 
 
 void setup() {
-	pinMode(13, OUTPUT);
+  pinMode(13, OUTPUT);
 
-	Serial.begin(19200);
-  
-	InitMainLoopStackSize(100);
+  Serial.begin(19200);
 
-	CreateTaskLoop(Blinker, LOW_PRIORITY);
+  InitMainLoopStackSize(100);
+
+  CreateTaskLoop(Blinker, LOW_PRIORITY);
 }
 
 void loop() {
-	cal.Put(Fraction(1,2));
-	cal.Put(&operatorPlus);
+  cal.Put(&operatorLeftBracket);
+  cal.Put(&operatorMinus);
+  cal.Put(Fraction(1));
+  cal.Put(&operatorRightBracket);
+  cal.Put(&operatorMultiply);
+  cal.Put(&operatorLeftBracket);
 
-	cal.Put(Fraction(1,3));
-	cal.Put(&operatorMultiply);
-	cal.Put(Fraction(5, 1));
+  cal.Put(Fraction(2));
+  cal.Put(&operatorMinus);
 
-	cal.Compute();
+  cal.Put(Fraction(3));
+  cal.Put(&operatorMultiply);
 
+  cal.Put(Fraction(5));
+  cal.Put(&operatorMinus);
 
+  cal.Put(Fraction(2));
+  cal.Put(&operatorRightBracket);
 
-	Fraction resFrac;
-
-	cal.TopOfOperandStack(&resFrac);
-
-	
-	Serial.println(resFrac.ToString());
-
+  cal.Compute();
 
 
-	while(true);
+
+  Fraction resFrac;
+
+  cal.TopOfOperandStack(&resFrac);
+
+
+  Serial.println(resFrac.ToString());
+
+
+
+  while (true);
 }
 
-TaskLoop(Blinker){
-	digitalWrite(13, HIGH);
-	DelayWithBlocked(1000);
+TaskLoop(Blinker) {
+  digitalWrite(13, HIGH);
+  DelayWithBlocked(1000);
 
-	digitalWrite(13, LOW);
-	DelayWithBlocked(1000);
+  digitalWrite(13, LOW);
+  DelayWithBlocked(1000);
 }
