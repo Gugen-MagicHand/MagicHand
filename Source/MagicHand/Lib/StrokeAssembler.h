@@ -36,6 +36,12 @@ public:
 		RESULT_UNKNOWN
 	};
 
+	enum FORMUlA_STATUS {
+		FORMULA_TOP,
+		FORMULA_STARTED,
+		FORMULA_END
+	};
+
 public:
 	//結果の場合分け用
 	static RESULT result;
@@ -60,7 +66,7 @@ public:
 	static STROKE strokes[3];
 
 	//式の最初を判別するフラグ（マイナスの値用）
-	static bool started;
+	static FORMUlA_STATUS formulaStatus;
 
 	//数値がマイナスかどうか判別するフラグ
 	static bool isNegativeNumber;
@@ -138,7 +144,7 @@ public:
 						break;
 					}
 
-					started = true;
+					formulaStatus = FORMULA_STARTED;
 					digit++;
 				}
 				else {
@@ -150,39 +156,39 @@ public:
 			else {
 
 				//結果がオペレータの時（式の初めではないとき）
-				if (started) {
+				if (formulaStatus == FORMULA_STARTED) {
 
 
 					//結果をオペレーターポインタに代入
 					switch (result) {
 					case RESULT_LEFT_BRACKET:
 						ResultOp = &operatorLeftBracket;
-						started = false;
+						formulaStatus = FORMULA_TOP;
 						break;
 					case RESULT_RIGHT_BRACKET:
 						ResultOp = &operatorRightBracket;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 					case RESULT_PLUS:
 						ResultOp = &operatorPlus;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 					case RESULT_MINUS:
 						ResultOp = &operatorMinus;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 					case RESULT_MULTIPLY:
 						ResultOp = &operatorMultiply;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 					case RESULT_DEVIDE:
 						ResultOp = &operatorDivide;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 
 						//イコールの時は結果の代入はしない
 					case RESULT_EQUAL:
-						started = false;
+						formulaStatus = FORMULA_END;
 						break;
 					}
 
@@ -215,7 +221,7 @@ public:
 					case RESULT_MINUS:
 						resultIsOperator = false;
 						isNegativeNumber = true;
-						started = true;
+						formulaStatus = FORMULA_STARTED;
 						break;
 					}
 				}
@@ -257,6 +263,16 @@ public:
 	//結果のオペランドを返す
 	static Fraction& GetResultOperand() {
 		return ResultFrac;
+	}
+
+	//数式の状態を返す
+	static FORMUlA_STATUS GetFormulaStatus() {
+		return formulaStatus;
+	}
+
+	//数式の状態をリセット
+	static void ResetFormulaStatus() {
+		formulaStatus = FORMULA_TOP;
 	}
 
 
@@ -561,7 +577,7 @@ STROKE StrokeAssembler::strokes[3] = { STROKE_SPACE, STROKE_SPACE, STROKE_SPACE 
 byte StrokeAssembler::numbers[maxDigit];
 
 //式の最初を判別するフラグ（マイナスの値用）
-bool StrokeAssembler::started = false;
+StrokeAssembler::FORMUlA_STATUS StrokeAssembler::formulaStatus = FORMULA_TOP;
 
 //数値がマイナスかどうか判別するフラグ
 bool StrokeAssembler::isNegativeNumber = false;

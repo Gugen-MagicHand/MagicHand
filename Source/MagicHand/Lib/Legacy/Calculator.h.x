@@ -23,7 +23,6 @@ public:
 	ASSOCIATIVITY associativity;
 	char *token = 0x00;
 	bool isBracket = false;
-	bool isEqual = false;
 	BRACKET bracket = BRACKET::RIGHT_BRACKET;
 
 	void DeleteOperator() {
