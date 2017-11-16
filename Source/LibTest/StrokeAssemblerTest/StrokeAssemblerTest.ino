@@ -17,25 +17,35 @@ STROKE strokes[] = {
 	STROKE_8,
 	STROKE_SPACE,
 	STROKE_HORIZONTAL_LINE,
-	STROKE_SPACE
+	STROKE_HORIZONTAL_LINE,
+	STROKE_SPACE,
+	STROKE_VERTICAL_LINE,
+	STROKE_HORIZONTAL_LINE,
+	STROKE_SPACE,
+	STROKE_6,
+	STROKE_SPACE,
+	STROKE_HORIZONTAL_LINE,
+	STROKE_HORIZONTAL_LINE,
+	STROKE_SPACE,
 };
 
-Fraction frac;
+Fraction frac(0);
 Operator *op;
-Calculator cal(10,10);
+Calculator cal(10, 10);
 
 
 void setup() {
 	//InitMainLoopStackSize(200);
 	Serial.begin(19200);
+	cal.Put(frac);
 }
 
 void loop() {
 	for (int i = 0; i < (sizeof(strokes) / sizeof(strokes[0])); i++) {
 
+		//Serial.println(StrokeAssembler::formulaStatus);
 
 		StrokeAssembler::Assemble(strokes[i]);
-
 
 		/*
 		Serial.print("count");
@@ -63,18 +73,19 @@ void loop() {
 
 			if (StrokeAssembler::GetResultIsOperator()) {
 
-				//イコールの時
-				if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
-					cal.Compute();
-					cal.TopOfOperandStack(&frac);
-					StrokeAssembler::ResetFormulaStatus();
 
-					Serial.print("=");
-					Serial.println(frac.ToString());
+				//式の最初の時
+				if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_TOP) {
+					//Serial.println("TOP");
+					op = StrokeAssembler::GetResultOperator();
+					cal.Put(op);
+					Serial.print(frac.ToString());
+					Serial.print(op->token);
 				}
-				//イコール以外の時
-				else {
-					//Serial.println("OPERATOR");
+				//式の途中の時
+				else if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_STARTED) {
+					//Serial.println("STARTED");
+
 					frac = StrokeAssembler::GetResultOperand();
 					op = StrokeAssembler::GetResultOperator();
 
@@ -83,6 +94,20 @@ void loop() {
 
 					Serial.print(frac.ToString());
 					Serial.print(op->token);
+				}
+				//式の終わりの時
+				else {
+					//Serial.println("END");
+
+					frac = StrokeAssembler::GetResultOperand();
+					Serial.print(frac.ToString());
+
+					cal.Put(frac);
+					cal.Compute();
+					cal.TopOfOperandStack(&frac);
+
+					Serial.print("=");
+					Serial.println(frac.ToString());
 				}
 			}
 		}

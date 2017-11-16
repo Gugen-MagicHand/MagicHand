@@ -68,9 +68,6 @@ public:
 	//式の最初を判別するフラグ（マイナスの値用）
 	static FORMUlA_STATUS formulaStatus;
 
-	//数値がマイナスかどうか判別するフラグ
-	static bool isNegativeNumber;
-
 	//桁数を数える
 	static byte digit;
 
@@ -92,12 +89,23 @@ public:
 public:
 
 	static void Assemble(STROKE stroke) {
+
+
 		//最初に文字の組み立て
 		AssembleMain(stroke);
 
 
 		//一文字組み立てが成功したとき
 		if (status == SUCCESS) {
+
+
+			//数式の状態の入れ替え
+			if (formulaStatus == FORMULA_TOP) {
+				formulaStatus = FORMULA_STARTED;
+			}
+			else if (formulaStatus == FORMULA_END) {
+				formulaStatus = FORMULA_TOP;
+			}
 
 			//結果のタイプをセット
 			SetResultType();
@@ -144,7 +152,6 @@ public:
 						break;
 					}
 
-					formulaStatus = FORMULA_STARTED;
 					digit++;
 				}
 				else {
@@ -155,75 +162,42 @@ public:
 			//結果がオペレーターの時
 			else {
 
-				//結果がオペレータの時（式の初めではないとき）
-				if (formulaStatus == FORMULA_STARTED) {
+				//結果をオペレーターポインタに代入
+				switch (result) {
+				case RESULT_LEFT_BRACKET:
+					ResultOp = &operatorLeftBracket;
+					break;
+				case RESULT_RIGHT_BRACKET:
+					ResultOp = &operatorRightBracket;
+					break;
+				case RESULT_PLUS:
+					ResultOp = &operatorPlus;
+					break;
+				case RESULT_MINUS:
+					ResultOp = &operatorMinus;
+					break;
+				case RESULT_MULTIPLY:
+					ResultOp = &operatorMultiply;
+					break;
+				case RESULT_DEVIDE:
+					ResultOp = &operatorDivide;
+					break;
 
+					//イコールの時は結果の代入はしない
+				case RESULT_EQUAL:
+					formulaStatus = FORMULA_END;
+					break;
+				}
 
-					//結果をオペレーターポインタに代入
-					switch (result) {
-					case RESULT_LEFT_BRACKET:
-						ResultOp = &operatorLeftBracket;
-						formulaStatus = FORMULA_TOP;
-						break;
-					case RESULT_RIGHT_BRACKET:
-						ResultOp = &operatorRightBracket;
-						formulaStatus = FORMULA_STARTED;
-						break;
-					case RESULT_PLUS:
-						ResultOp = &operatorPlus;
-						formulaStatus = FORMULA_STARTED;
-						break;
-					case RESULT_MINUS:
-						ResultOp = &operatorMinus;
-						formulaStatus = FORMULA_STARTED;
-						break;
-					case RESULT_MULTIPLY:
-						ResultOp = &operatorMultiply;
-						formulaStatus = FORMULA_STARTED;
-						break;
-					case RESULT_DEVIDE:
-						ResultOp = &operatorDivide;
-						formulaStatus = FORMULA_STARTED;
-						break;
-
-						//イコールの時は結果の代入はしない
-					case RESULT_EQUAL:
-						formulaStatus = FORMULA_END;
-						break;
-					}
-
-					//結果の数値を計算
-					for (int i = 0; i < digit; i++) {
-						resultNum = resultNum + numbers[digit - 1 - i] * pow(10, i);
-
-					}
-					if (isNegativeNumber) {
-						resultNum *= -1;
-						isNegativeNumber = false;
-					}
+				//結果の数値を計算
+				for (int i = 0; i < digit; i++) {
+					resultNum = resultNum + numbers[digit - 1 - i] * pow(10, i);
 
 					//Serial.println(resultNum);
 
 					//結果の数値をfractionに代入
 					ResultFrac.SetNumer(resultNum);
 
-
-				}
-				//式の始めか左括弧の直後の時
-				else {
-					switch (result) {
-					case RESULT_LEFT_BRACKET:
-					case RESULT_RIGHT_BRACKET:
-					case RESULT_PLUS:
-					case RESULT_MULTIPLY:
-					case RESULT_DEVIDE:
-						break;
-					case RESULT_MINUS:
-						resultIsOperator = false;
-						isNegativeNumber = true;
-						formulaStatus = FORMULA_STARTED;
-						break;
-					}
 				}
 
 				//桁数、数値を初期化
@@ -577,10 +551,7 @@ STROKE StrokeAssembler::strokes[3] = { STROKE_SPACE, STROKE_SPACE, STROKE_SPACE 
 byte StrokeAssembler::numbers[maxDigit];
 
 //式の最初を判別するフラグ（マイナスの値用）
-StrokeAssembler::FORMUlA_STATUS StrokeAssembler::formulaStatus = FORMULA_TOP;
-
-//数値がマイナスかどうか判別するフラグ
-bool StrokeAssembler::isNegativeNumber = false;
+StrokeAssembler::FORMUlA_STATUS StrokeAssembler::formulaStatus = FORMULA_END;
 
 //桁数を数える
 byte StrokeAssembler::digit = 0;
