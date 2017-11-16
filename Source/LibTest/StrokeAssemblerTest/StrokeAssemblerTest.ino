@@ -22,6 +22,9 @@ STROKE strokes[] = {
 
 Fraction frac;
 Operator *op;
+Calculator cal(10,10);
+
+
 void setup() {
 	//InitMainLoopStackSize(200);
 	Serial.begin(19200);
@@ -59,14 +62,28 @@ void loop() {
 			//Serial.println("SUCCESS");
 
 			if (StrokeAssembler::GetResultIsOperator()) {
-				//Serial.println("OPERATOR");
-				frac = StrokeAssembler::GetResultOperand();
-				op = StrokeAssembler::GetResultOperator();
 
-				Serial.print(frac.ToString());
-				Serial.println();
-				Serial.print(op->token);
-				Serial.println();
+				//イコールの時
+				if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
+					cal.Compute();
+					cal.TopOfOperandStack(&frac);
+					StrokeAssembler::ResetFormulaStatus();
+
+					Serial.print("=");
+					Serial.println(frac.ToString());
+				}
+				//イコール以外の時
+				else {
+					//Serial.println("OPERATOR");
+					frac = StrokeAssembler::GetResultOperand();
+					op = StrokeAssembler::GetResultOperator();
+
+					cal.Put(frac);
+					cal.Put(op);
+
+					Serial.print(frac.ToString());
+					Serial.print(op->token);
+				}
 			}
 		}
 

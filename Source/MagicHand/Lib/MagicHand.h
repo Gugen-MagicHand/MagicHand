@@ -41,6 +41,11 @@
 
 // End Pattern Recognition -----
 
+// --- StrokeAssembler-------
+#include "StrokeAssembler.h"
+
+//End StrokeAssembler----------
+
 // --- Math -------
 #include "Fraction.h"
 
