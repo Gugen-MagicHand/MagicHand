@@ -1,3 +1,26 @@
+/*
+// 分数ライブラリ
+//
+// NaNについて:
+//  一般に分母にゼロが来るものはすべてNaNである.
+//
+// 例外処理について:
+//  各演算子ごとにその演算方法に間違いがないかを確認する.
+//  間違いがあった場合は, 例外処理を返すようにする.
+//  例外処理を利用できない環境で, 例外処理関係のコードを無効化(コメントアウトなど)しても, NaNとして計算結果を返すようにする.
+//
+//  ただし, 数学として正しくない計算ではこのライブラリの動作を保証できない.
+//
+// 更新履歴:
+//  2017/10/29:
+//   初期版完成
+// 
+//  2017/11/16:
+//   分母, 分子の定義を明確化
+//   0で割られた分数はNaNとなるようになった.
+//
+*/
+
 #ifndef FRACTION_H
 #define FRACTION_H
 
@@ -7,12 +30,26 @@
 
 class Fraction {
 private:
+
+    //
+    // 分母, 分子の値について:
+    //  分母:
+    //   分母は通常0より大きい整数とする.
+    //   分母がとりうる値は0以上の整数である.
+    //   分母が0のときは, NaNとなる.
+    // 
+    //  分子:
+    //   分子は, あらゆる整数をとることができる.
+    //   分子の符号が, 分数の符号となる.
+    // 
+
+
     // 分母. denominator
     // 必ず正の数.
-    int denom;
+    int denom = 1;
 
     // 分子. numerator
-    int numer;
+    int numer = 0;
 
 
     template<typename TYPE>
@@ -21,19 +58,41 @@ private:
     }
 
 public:
+    bool IsZero() {
+        // 分母が0ではなく, 分子が0のとき, この分数は0である.
+        if ((denom != 0) && (numer == 0)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool IsNaN() {
+        // 分母が0のときは, NaNである
+        if (denom == 0) {
+            return true;
+        }
+
+        return false;
+    }
 
     static Fraction Inverse(const Fraction &frac) {
 
         Fraction fracInv = frac;
 
-        // 0のとき
-        if (fracInv.numer == 0) {
-            // 0のまま
+        if (fracInv.IsZero()) {
+            // 0の逆数は定義できない.
+            //throw std::range_error("[Error] Fraction::Multiply() >> Divided by zero.");
+        }
+
+        // NaNのとき
+        if (fracInv.IsNaN()) {
+            // NaNのまま返す.
             return fracInv;
         }
 
         // 負のとき
-        else if (fracInv.numer < 0) {
+        if (fracInv.numer < 0) {
             //分母を負にする
             fracInv.denom *= -1;
             fracInv.numer *= -1;
@@ -59,7 +118,6 @@ public:
         }
         else if (denom == 0) {
             //throw std::invalid_argument("[Error] Fraction::SetDenominator() >> Denom is zero.");
-            return;
         }
 
 
@@ -69,8 +127,7 @@ public:
 
     void SetFraction(int numer, int denom) {
         if (denom == 0) {
-            //throw std::invalid_argument("[Error] Fraction::SetDenominator() >> Denom is zero.");
-            return;
+            //throw std::invalid_argument("[Error] Fraction::SetFraction() >> Denom is zero.");
         }
         else if (denom < 0) {
             numer *= -1;
@@ -132,36 +189,48 @@ public:
         return *this;
     }
 
-    String ToString() {
-      String output;
-      if (denom == 1) {
-        output = String(numer);
-
-      }
-      else {
-        output = String(numer) + "/" + String(denom);
-      }
-      return output;
-    }
-
-    
-/*
+    /*
     friend std::ostream & operator<<(std::ostream &output, Fraction &frac) {
-        if (frac.numer == 0) {
+        if (frac.IsNaN()) {
+            output << "NaN";
+        }
+
+        else if (frac.IsZero()) {
             output << 0;
         }
 
         else if (frac.denom == 1) {
             output << frac.numer;
-
         }
+
         else {
             output << frac.numer << "/" << frac.denom;
         }
 
         return output;
     }
-*/
+    */
+    String ToString() {
+        String output;
+        if (IsNaN()) {
+            output = "NaN";
+        }
+
+        else if (IsZero()) {
+            output = "0";
+        }
+
+        else if (denom == 1) {
+            output = String(numer);
+        }
+
+        else {
+            output = String(numer) + "/" + String(denom);
+        }
+
+        return output;
+    }
+
     //
     // --- 足し算 ----------------------------------------------------------
     //
@@ -338,6 +407,14 @@ public:
     //
     // いづれの数も正の数である必要があります.
     //
+    // @param a:
+    //  最大公約数を求めるための数の一つ.
+    //  0より大きい整数
+    //
+    // @param b:
+    //  最大公約数を求めるための数の一つ.
+    //  0より大きい整数
+    //
     int CalculateGCD(int a, int b) {
 
         // aが大きくなるようにする
@@ -380,8 +457,8 @@ public:
 
 
     void Reduce() {
-        // 分子がゼロの場合は約分しない
-        if (numer == 0) {
+        // 分子または分母がゼロの場合は約分しない
+        if (numer == 0 || denom == 0) {
             
             return;
         }
@@ -405,6 +482,20 @@ public:
     //  fracC = fracA(this) + fracB
     //
     void Plus(const Fraction &fracB, Fraction &fracC) {
+        // いづれか片方の分母が0のとき, 結果はNaNである
+        if (this->denom == 0 || fracB.denom == 0) {
+
+
+            fracC.denom = 0;
+            fracC.numer = 1;
+
+
+            //throw std::invalid_argument("[Error] Fraction::Plus() >> Denom is zero.");
+
+            return;
+        }
+
+
         int lcm = CalculateLCM(this->denom, fracB.denom);
 
         int fracANumer = this->numer * (lcm / this->denom);
@@ -424,6 +515,10 @@ public:
     //  fracC = fracA(this) + b
     //
     void Plus(int b, Fraction &fracC) {
+        if (this->denom == 0) {
+            //throw std::invalid_argument("[Error] Fraction::Plus() >> Denom is zero.");
+        }
+
         fracC.denom = this->denom;
         fracC.numer = this->numer + b * this->denom;
 
@@ -438,6 +533,9 @@ public:
     //  fracC = fracA(this) * fracB
     // 
     void Multiply(const Fraction &fracB, Fraction &fracC) {
+        if (this->denom == 0 || fracB.denom == 0) {
+            //throw std::range_error("[Error] Fraction::Multiply() >> Divided by zero.");
+        }
 
         fracC.denom = this->denom * fracB.denom;
         fracC.numer = this->numer * fracB.numer;
@@ -453,6 +551,9 @@ public:
     //  fracC = fracA(this) * b
     // 
     void Multiply(int b, Fraction &fracC) {
+        if (this->denom == 0) {
+            //throw std::range_error("[Error] Fraction::Multiply() >> Divided by zero.");
+        }
 
         fracC.denom = this->denom;
         fracC.numer = this->numer * b;
