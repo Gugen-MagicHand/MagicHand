@@ -66,19 +66,19 @@ SemaphoreHandle strokeQueueSem;
 // キャンバスの内容をシリアルモニタに描画
 void Draw(Canvas &canvas)
 {
-	for (int y = 0; y < canvas.SizeY(); y++)
-	{
-		for (int x = 0; x < canvas.SizeX(); x++)
-		{
-			if (canvas.ReadPixel(x, y)) {
-				Serial.print("@");
-			}
-			else {
-				Serial.print("_");
-			}
-		}
-		Serial.println("");
-	}
+    for (int y = 0; y < canvas.SizeY(); y++)
+    {
+        for (int x = 0; x < canvas.SizeX(); x++)
+        {
+            if (canvas.ReadPixel(x, y)) {
+                Serial.print("@");
+            }
+            else {
+                Serial.print("_");
+            }
+        }
+        Serial.println("");
+    }
 }
 
 
@@ -86,45 +86,45 @@ void Draw(Canvas &canvas)
 
 void setup()
 {
-	//シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
-	Serial.begin(19200);
+    //シリアル通信の開始（デバッグ用、本番はコメントアウトする。）
+    Serial.begin(19200);
 
-	//FingerTrackDriverのピン設定、初期化
-	ftDriver.Begin(2, 3, 4, 5, 6);
+    //FingerTrackDriverのピン設定、初期化
+    ftDriver.Begin(2, 3, 4, 5, 6);
 
-	// --- Task 作成 --------------------------------------------------------------
+    // --- Task 作成 --------------------------------------------------------------
 
-	//トラックボールの認識タスク
-	CreateTaskLoop(TrackBallLeftRotationTask, LOW_PRIORITY);
-	CreateTaskLoop(TrackBallRightRotationTask, LOW_PRIORITY);
-	CreateTaskLoop(TrackBallUpRotationTask, LOW_PRIORITY);
-	CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
+    //トラックボールの認識タスク
+    CreateTaskLoop(TrackBallLeftRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallRightRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallUpRotationTask, LOW_PRIORITY);
+    CreateTaskLoop(TrackBallDownRotationTask, LOW_PRIORITY);
 
-	//スケッチャー関連のタスク
-	CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
+    //スケッチャー関連のタスク
+    CreateTaskLoopWithStackSize(SketchCanvasFromTrackBallTask, LOW_PRIORITY, 200);
 
-	//パターン認識のタスク
-	CreateTaskLoopWithStackSize(DiscriminatorTask, LOW_PRIORITY, 200);
+    //パターン認識のタスク
+    CreateTaskLoopWithStackSize(DiscriminatorTask, LOW_PRIORITY, 200);
 
-	//計算、アウトプットのタスク
-	CreateTaskLoop(CaluculateAndOutputTask, LOW_PRIORITY);
+    //計算、アウトプットのタスク
+    CreateTaskLoopWithStackSize(CaluculateAndOutputTask, LOW_PRIORITY, 200);
 
-	// --- セマフォ作成 -----------------------------------------------------------
+    // --- セマフォ作成 -----------------------------------------------------------
 
-	//トラックボールのセマフォ
-	CreateBinarySemaphore(trackBallLeftRotationSem);
-	CreateBinarySemaphore(trackBallRightRotationSem);
-	CreateBinarySemaphore(trackBallUpRotationSem);
-	CreateBinarySemaphore(trackBallDownRotationSem);
+    //トラックボールのセマフォ
+    CreateBinarySemaphore(trackBallLeftRotationSem);
+    CreateBinarySemaphore(trackBallRightRotationSem);
+    CreateBinarySemaphore(trackBallUpRotationSem);
+    CreateBinarySemaphore(trackBallDownRotationSem);
 
-	//キャンバスキューのセマフォ
-	CreateBinarySemaphore(canvasQueueSem);
+    //キャンバスキューのセマフォ
+    CreateBinarySemaphore(canvasQueueSem);
 
-	//ストロークキューのセマフォ
-	CreateBinarySemaphore(strokeQueueSem);
+    //ストロークキューのセマフォ
+    CreateBinarySemaphore(strokeQueueSem);
 
 
-	//InitMainLoopStackSize(200);
+    //InitMainLoopStackSize(200);
 }
 
 
@@ -139,111 +139,133 @@ void loop()
 //計算、アウトプットのタスク----------------------------------------------------------------
 TaskLoop(CaluculateAndOutputTask) {
 
-	STROKE stroke;
+    //Serial.println("C");
+    STROKE stroke;
 
-  static Fraction resultFrac(0);
-  static Operator* resultOp;
+    static Fraction resultFrac(0);
+    static Operator* resultOp;
 
-	static bool canAssemble = false;
+    static bool canAssemble = false;
 
-	if (Acquire(strokeQueueSem, 1000)) {
-		if (strokeQueue.Peek(&stroke)) {
-			canAssemble = true;
-		}
-	}
+    if (Acquire(strokeQueueSem, 1000)) {
+        if (strokeQueue.Pop(&stroke)) {
 
-	if (canAssemble) {
-		StrokeAssembler::Assemble(stroke);
+           Serial.println("Pop");
+            canAssemble = true;
 
-		if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
+        }
+        Release(strokeQueueSem);
+        Yield();
+    }
 
-			if (StrokeAssembler::GetResultIsOperator()) {
+    if (canAssemble) {
+        StrokeAssembler::Assemble(stroke);
 
-				//結果がイコールつまり式の終わりの時
-				if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
-					cal.Compute();
-					cal.TopOfOperandStack(&resultFrac);
-					StrokeAssembler::ResetFormulaStatus();
+        if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
 
-					Serial.print("=");
-					Serial.println(resultFrac.ToString());
-				}
-				//結果がオペレーターでイコールでない時
-				else {
-					resultFrac = StrokeAssembler::GetResultOperand();
-					resultOp = StrokeAssembler::GetResultOperator();
+            Serial.print("[Cur] ");
+            Serial.println(StrokeAssembler::ResultToString(StrokeAssembler::result));
 
-					cal.Put(resultFrac);
-					cal.Put(resultOp);
+            if (StrokeAssembler::GetResultIsOperator()) {
 
-					Serial.print(resultFrac.ToString());
-					Serial.print(resultOp->token);
-				}
-			}
-		}
+                //結果がイコールつまり式の終わりの時
+                if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
+                    resultFrac = StrokeAssembler::GetResultOperand(); 
+                    cal.Put(resultFrac);
+                    Serial.print(resultFrac.ToString());
+                    cal.Compute();
+                    cal.TopOfOperandStack(&resultFrac);
+                    StrokeAssembler::ResetFormulaStatus();
 
-		canAssemble = false;
-	}
+                    Serial.print("=");
+                    Serial.println(resultFrac.ToString());
+                }
+                //結果がオペレーターでイコールでない時
+                else {
+                    resultFrac = StrokeAssembler::GetResultOperand();
+                    resultOp = StrokeAssembler::GetResultOperator();
+
+                    cal.Put(resultFrac);
+                    cal.Put(resultOp);
+
+                    Serial.print(resultFrac.ToString());
+                    Serial.print(resultOp->token);
+                }
+            }
+        }
+
+        canAssemble = false;
+    }
 }
 
 
 //パターン認識のタスク----------------------------------------------------------------------
 TaskLoop(DiscriminatorTask)
 {
-	Canvas *work;
-	STROKE stroke;
 
-	enum STATE {
-		PEEKING,
-		DISCRIMINATING,
-		POPING
-	};
+    //Serial.println("D");
+    //Serial.println("Test");
+    Canvas *work;
+    STROKE stroke;
 
-	static STATE state = STATE::PEEKING;
+    enum STATE {
+        PEEKING,
+        DISCRIMINATING,
+        POPING
+    };
 
-	switch (state) {
-	case STATE::PEEKING:
+    static STATE state = STATE::PEEKING;
 
-		if (Acquire(canvasQueueSem, 1000))
-		{
-			if (canvasQueue.Peek(&work))
-			{
-				state = STATE::DISCRIMINATING;
+    switch (state) {
+    case STATE::PEEKING:
 
-			}
-			Release(canvasQueueSem);
-			Yield();
-		}
+        if (Acquire(canvasQueueSem, 1000))
+        {
+            if (canvasQueue.Peek(&work))
+            {
+                state = STATE::DISCRIMINATING;
 
-		break;
+                //Serial.println("Peek");
+            }
+            Release(canvasQueueSem);
+            Yield();
+        }
 
-	case STATE::DISCRIMINATING:
-		SerialPrintCanvas(*work);
-		//Draw(*work);
-		//Serial.println("-");
-		stroke = StrokeDiscriminator::Discriminate(*work);
 
-		if (Acquire(strokeQueueSem, 1000))
-		{
-			strokeQueue.Push(stroke);
-		}
-		//Serial.println(stroke);
-		state = STATE::POPING;
+        break;
 
-		break;
+    case STATE::DISCRIMINATING:
+        //SerialPrintCanvas(*work);
+        //Draw(*work);
+        //Serial.println("-");
+        stroke = StrokeDiscriminator::Discriminate(*work);
 
-	case STATE::POPING:
+        //Serial.println("Dis");
+        if (Acquire(strokeQueueSem, 1000))
+        {
+            //Serial.println("Push");
+            strokeQueue.Push(stroke);
 
-		if (Acquire(canvasQueueSem, 1000))
-		{
-			canvasQueue.Pop(&work);
+            Release(strokeQueueSem);
+        }
+        //Serial.println(stroke);
+        state = STATE::POPING;
 
-			state = STATE::PEEKING;
 
-			Release(canvasQueueSem);
-		}
-		break;
-	}
+        break;
+
+    case STATE::POPING:
+
+        if (Acquire(canvasQueueSem, 1000))
+        {
+            canvasQueue.Pop(&work);
+
+            state = STATE::PEEKING;
+
+            Release(canvasQueueSem);
+        }
+        break;
+    }
 
 }
 
@@ -251,150 +273,159 @@ TaskLoop(DiscriminatorTask)
 TaskLoop(SketchCanvasFromTrackBallTask)
 {
 
-	//Serial.println(ftSketcher.DeltaXYStayZeroTime());
-	static bool isAlreadyStrokePushed = true;
-	static bool isAlreadyLiteralPushed = true;
-	static unsigned long lastSketchTime = millis();
+    //Serial.println("S");
+    //Serial.println(ftSketcher.DeltaXYStayZeroTime());
+    static bool isAlreadyStrokePushed = true;
+    static bool isAlreadyLiteralPushed = true;
+    static unsigned long lastSketchTime = millis();
 
-	// CanvasQueue から作業領域キャンバスを確保できるまで待機
-	// 前回ループでプッシュされない限り, 同じキャンバスを返す.
-	while (true)
-	{
-		Canvas *work;
+    // CanvasQueue から作業領域キャンバスを確保できるまで待機
+    // 前回ループでプッシュされない限り, 同じキャンバスを返す.
+    while (true)
+    {
+        Canvas *work;
 
-		if (canvasQueue.GetPushedReadyCanvas(&work))
-		{
-			ftSketcher.SetToCanvas(work);
-			break;
-		}
-	}
+        if (canvasQueue.GetPushedReadyCanvas(&work))
+        {
+            ftSketcher.SetToCanvas(work);
+            break;
+        }
+    }
 
-	// --- トラックボールからdeltaX, deltaYを取得 --------------------
-	if (Acquire(trackBallLeftRotationSem, 1000))
-	{
-		ftDriver.AddLeftSumToDeltaX();
-		Release(trackBallLeftRotationSem);
-	}
+    // --- トラックボールからdeltaX, deltaYを取得 --------------------
+    if (Acquire(trackBallLeftRotationSem, 1000))
+    {
+        ftDriver.AddLeftSumToDeltaX();
+        Release(trackBallLeftRotationSem);
+    }
 
-	if (Acquire(trackBallRightRotationSem, 1000))
-	{
-		ftDriver.AddRightSumToDeltaX();
-		Release(trackBallRightRotationSem);
-	}
+    if (Acquire(trackBallRightRotationSem, 1000))
+    {
+        ftDriver.AddRightSumToDeltaX();
+        Release(trackBallRightRotationSem);
+    }
 
-	if (Acquire(trackBallUpRotationSem, 1000))
-	{
-		ftDriver.AddUpSumToDeltaY();
-		Release(trackBallUpRotationSem);
-	}
+    if (Acquire(trackBallUpRotationSem, 1000))
+    {
+        ftDriver.AddUpSumToDeltaY();
+        Release(trackBallUpRotationSem);
+    }
 
-	if (Acquire(trackBallDownRotationSem, 1000))
-	{
-		ftDriver.AddDownSumToDeltaY();
-		Release(trackBallDownRotationSem);
-	}
-	ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
+    if (Acquire(trackBallDownRotationSem, 1000))
+    {
+        ftDriver.AddDownSumToDeltaY();
+        Release(trackBallDownRotationSem);
+    }
+    ftSketcher.SetDeltaXY(ftDriver.GetDeltaX(), ftDriver.GetDeltaY());
 
-	ftDriver.ResetDeltaXY();
-	// End トラックボールからdeltaX, deltaYを取得　------
+    ftDriver.ResetDeltaXY();
+    // End トラックボールからdeltaX, deltaYを取得　------
 
-	if (!ftSketcher.IsDeltaXYZero())
-	{
-		// deltaX, deltaYがともに0ではないときは,
-		// 何らかの入力が行われたことなので,
-		// ストローク, リテラルの区切りとした
-		// pushフラグを下す.
-		isAlreadyStrokePushed = false;
-		isAlreadyLiteralPushed = false;
-	}
+    if (!ftSketcher.IsDeltaXYZero())
+    {
+        // deltaX, deltaYがともに0ではないときは,
+        // 何らかの入力が行われたことなので,
+        // ストローク, リテラルの区切りとした
+        // pushフラグを下す.
+        isAlreadyStrokePushed = false;
+        isAlreadyLiteralPushed = false;
+    }
 
-	// スケッチに描画
-	if (millis() - lastSketchTime > SKETCH_INTERVAL_TIME)
-	{
-		ftSketcher.Sketch();
-		lastSketchTime = millis();
-	}
+    // スケッチに描画
+    if (millis() - lastSketchTime > SKETCH_INTERVAL_TIME)
+    {
+        ftSketcher.Sketch();
+        lastSketchTime = millis();
+    }
 
-	//Serial.println(ftSketcher.DeltaXYStayZeroTime());
+    //Serial.println(ftSketcher.DeltaXYStayZeroTime());
 
-	if (!isAlreadyStrokePushed && (ftSketcher.DeltaXYStayZeroTime() > STROKE_INTERVAL_TIME))
-	{
+    if (!isAlreadyStrokePushed && (ftSketcher.DeltaXYStayZeroTime() > STROKE_INTERVAL_TIME))
+    {
 
-		ftSketcher.CopyCanvas();
+        ftSketcher.CopyCanvas();
 
-		if (Acquire(canvasQueueSem, 1000))
-		{
-			canvasQueue.Push();
-			Release(canvasQueueSem);
-		}
+        if (Acquire(canvasQueueSem, 1000))
+        {
+            canvasQueue.Push();
+            Release(canvasQueueSem);
+        }
 
-		// strokeプッシュ済みなのでフラグを上げる.
-		isAlreadyStrokePushed = true;
-		//Serial.println("StrokeP");
-	}
-	else if (!isAlreadyLiteralPushed && (ftSketcher.DeltaXYStayZeroTime() > LITERAL_INTERVAL_TIME))
-	{
-		ftSketcher.CopyCanvas();
+        // strokeプッシュ済みなのでフラグを上げる.
+        isAlreadyStrokePushed = true;
+        //Serial.println("StrokeP");
+    }
+    else if (!isAlreadyLiteralPushed && (ftSketcher.DeltaXYStayZeroTime() > LITERAL_INTERVAL_TIME))
+    {
+        ftSketcher.CopyCanvas();
 
-		if (Acquire(canvasQueueSem, 1000))
-		{
-			canvasQueue.Push();
-			Release(canvasQueueSem);
-		}
+        if (Acquire(canvasQueueSem, 1000))
+        {
+            canvasQueue.Push();
+            Release(canvasQueueSem);
+        }
 
-		// literalプッシュ済みなのでフラグを上げる.
-		isAlreadyLiteralPushed = true;
-		//Serial.println("LiteralP");
-	}
+        // literalプッシュ済みなのでフラグを上げる.
+        isAlreadyLiteralPushed = true;
+        //Serial.println("LiteralP");
+    }
 }
 
 // --- LeftTask-------------------------------------------------------------
 
 TaskLoop(TrackBallLeftRotationTask)
 {
-	ftDriver.ReadLeft();
-	if (Acquire(trackBallLeftRotationSem, 1000))
-	{
-		ftDriver.AddLeftToSum();
-		Release(trackBallLeftRotationSem);
-	}
+
+    //Serial.println("L");
+    ftDriver.ReadLeft();
+    if (Acquire(trackBallLeftRotationSem, 1000))
+    {
+        ftDriver.AddLeftToSum();
+        Release(trackBallLeftRotationSem);
+    }
 }
 
 // --- rightTask--------------------------------------------------------------
 
 TaskLoop(TrackBallRightRotationTask)
 {
-	ftDriver.ReadRight();
 
-	if (Acquire(trackBallRightRotationSem, 1000))
-	{
-		ftDriver.AddRightToSum();
-		Release(trackBallRightRotationSem);
-	}
+    //Serial.println("R");
+    ftDriver.ReadRight();
+
+    if (Acquire(trackBallRightRotationSem, 1000))
+    {
+        ftDriver.AddRightToSum();
+        Release(trackBallRightRotationSem);
+    }
 }
 
 // --- UpTask--------------------------------------------------------------------
 
 TaskLoop(TrackBallUpRotationTask)
 {
-	ftDriver.ReadUp();
 
-	if (Acquire(trackBallUpRotationSem, 1000))
-	{
-		ftDriver.AddUpToSum();
-		Release(trackBallUpRotationSem);
-	}
+    //Serial.println("U");
+    ftDriver.ReadUp();
+
+    if (Acquire(trackBallUpRotationSem, 1000))
+    {
+        ftDriver.AddUpToSum();
+        Release(trackBallUpRotationSem);
+    }
 }
 
 // --- DownTask---------------------------------------------------------------------
 
 TaskLoop(TrackBallDownRotationTask)
 {
-	ftDriver.ReadDown();
 
-	if (Acquire(trackBallDownRotationSem, 1000))
-	{
-		ftDriver.AddDownToSum();
-		Release(trackBallDownRotationSem);
-	}
+    //Serial.println("Do");
+    ftDriver.ReadDown();
+
+    if (Acquire(trackBallDownRotationSem, 1000))
+    {
+        ftDriver.AddDownToSum();
+        Release(trackBallDownRotationSem);
+    }
 }
