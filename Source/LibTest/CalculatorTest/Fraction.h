@@ -5,7 +5,8 @@
 //#include <stdexcept>
 
 
-class Fraction {
+class Fraction
+{
 private:
     // 分母. denominator
     // 必ず正の数.

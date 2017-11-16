@@ -305,6 +305,15 @@ public:
         operandStack.Clear();
     }
 
+    void ClearOperatorPointerStack() {
+        operatorPointerStack.Clear();
+    }
+
+    void ClearAllStacks() {
+        operandStack.Clear();
+        operatorPointerStack.Clear();
+    }
+
 };
 
 
