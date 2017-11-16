@@ -123,7 +123,6 @@ void setup()
     //ストロークキューのセマフォ
     CreateBinarySemaphore(strokeQueueSem);
 
-
     //InitMainLoopStackSize(200);
 }
 

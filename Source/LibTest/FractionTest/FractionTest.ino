@@ -28,6 +28,10 @@ void setup() {
 
 
   //CreateTaskLoop(HigherTask, HIGH_PRIORITY);
+  fracA(1, 2);
+  fracB(0, 1);
+
+  Serial.println((fracA * fracB).ToString());
 
   delay(3000);
   //DelayWithBlocked(5000);
