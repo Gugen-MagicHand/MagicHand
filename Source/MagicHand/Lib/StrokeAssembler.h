@@ -91,6 +91,69 @@ public:
 
 public:
 
+    static String ResultToString(RESULT resultToStr) {
+        String str;
+
+        switch (resultToStr) {
+        case StrokeAssembler::RESULT_0:
+            str = "0";
+            break;
+        case StrokeAssembler::RESULT_1:
+            str = "1";
+            break;
+        case StrokeAssembler::RESULT_2:
+            str = "2";
+            break;
+        case StrokeAssembler::RESULT_3:
+            str = "3";
+            break;
+        case StrokeAssembler::RESULT_4:
+            str = "4";
+            break;
+        case StrokeAssembler::RESULT_5:
+            str = "5";
+            break;
+        case StrokeAssembler::RESULT_6:
+            str = "6";
+            break;
+        case StrokeAssembler::RESULT_7:
+            str = "7";
+            break;
+        case StrokeAssembler::RESULT_8:
+            str = "8";
+            break;
+        case StrokeAssembler::RESULT_9:
+            str = "8";
+            break;
+        case RESULT_LEFT_BRACKET:
+            str = "(";
+            break;
+        case RESULT_RIGHT_BRACKET:
+            str = ")";
+            break;
+        case RESULT_PLUS:
+            str = "+";
+            break;
+        case RESULT_MINUS:
+            str = "-";
+            break;
+        case RESULT_MULTIPLY:
+            str = "*";
+            break;
+        case RESULT_DEVIDE:
+            str = "/";
+            break;
+        case RESULT_EQUAL:
+            str = "=";
+            break;
+        case RESULT_UNKNOWN:
+            str = "?";
+            break;
+        }
+
+        return str;
+    }
+
 	static void Assemble(STROKE stroke) {
 		//最初に文字の組み立て
 		AssembleMain(stroke);
@@ -233,7 +296,7 @@ public:
 
 			//初期化
 			count = 0;
-			result = RESULT_UNKNOWN;
+			//result = RESULT_UNKNOWN;
 
 
 		}

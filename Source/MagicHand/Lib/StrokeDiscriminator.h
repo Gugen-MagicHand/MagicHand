@@ -114,7 +114,7 @@ public:
         // HOG特徴を求める
         TinyHOG::HOG(compareImage, compareFeatures, IMAGE_SIZE, IMAGE_SIZE, CELL_SIZE, ORIENTATION);
 
-
+        /*
         for (int i = 0; i < FEATURES_COUNT / ORIENTATION; i++) {
             for (int j = 0; j < ORIENTATION; j++) {
                 Serial.print(compareFeatures[i * ORIENTATION + j], 4);
@@ -125,7 +125,7 @@ public:
         Serial.println("-");
 
         Serial.println("Sim:");
-
+        */
         float maxSimilarity = 0.0;
         STROKE similarStroke = STROKE::STROKE_SPACE;
 
@@ -150,9 +150,11 @@ public:
                 similarStroke = (STROKE)stroke;
             }
 
+            /*
             Serial.print(stroke);
             Serial.print(": ");
             Serial.println(similarity, 4);
+            */
         }
 
         return similarStroke;
