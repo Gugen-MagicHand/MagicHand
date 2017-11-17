@@ -135,6 +135,69 @@ void loop()
 //------------------------------------------------------------------------------------------
 
 
+String StrokeAssemblerResultToString(StrokeAssembler::RESULT resultToStr) {
+    String str;
+
+    switch (resultToStr) {
+    case StrokeAssembler::RESULT::RESULT_LEFT_BRACKET:
+        str = F("(");
+        break;
+    case StrokeAssembler::RESULT::RESULT_RIGHT_BRACKET:
+        str = F(")");
+        break;
+    case StrokeAssembler::RESULT::RESULT_0:
+        str = F("0");
+        break;
+    case StrokeAssembler::RESULT::RESULT_1:
+        str = F("1");
+        break;
+    case StrokeAssembler::RESULT::RESULT_2:
+        str = F("2");
+        break;
+    case StrokeAssembler::RESULT::RESULT_3:
+        str = F("3");
+        break;
+    case StrokeAssembler::RESULT::RESULT_4:
+        str = F("4");
+        break;
+    case StrokeAssembler::RESULT::RESULT_5:
+        str = F("5");
+        break;
+    case StrokeAssembler::RESULT::RESULT_6:
+        str = F("6");
+        break;
+    case StrokeAssembler::RESULT::RESULT_7:
+        str = F("7");
+        break;
+    case StrokeAssembler::RESULT::RESULT_8:
+        str = F("8");
+        break;
+    case StrokeAssembler::RESULT::RESULT_9:
+        str = F("9");
+        break;
+    case StrokeAssembler::RESULT::RESULT_PLUS:
+        str = F("+");
+        break;
+    case StrokeAssembler::RESULT::RESULT_MINUS:
+        str = F("-");
+        break;
+    case StrokeAssembler::RESULT::RESULT_MULTIPLY:
+        str = F("*");
+        break;
+    case StrokeAssembler::RESULT::RESULT_DEVIDE:
+        str = F("/");
+        break;
+    case StrokeAssembler::RESULT::RESULT_EQUAL:
+        str = F("=");
+        break;
+    case StrokeAssembler::RESULT::RESULT_UNKNOWN:
+        str = F("?");
+        break;
+    }
+
+    return str;
+}
+
 //計算、アウトプットのタスク----------------------------------------------------------------
 TaskLoop(CaluculateAndOutputTask) {
 
@@ -149,7 +212,7 @@ TaskLoop(CaluculateAndOutputTask) {
     if (Acquire(strokeQueueSem, 1000)) {
         if (strokeQueue.Pop(&stroke)) {
 
-           Serial.println("Pop");
+            Serial.println("Pop");
             canAssemble = true;
 
         }
@@ -163,24 +226,22 @@ TaskLoop(CaluculateAndOutputTask) {
         if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
 
             Serial.print("[Cur] ");
-            Serial.println(StrokeAssembler::ResultToString(StrokeAssembler::result));
+            Serial.println(StrokeAssemblerResultToString(StrokeAssembler::result));
 
             if (StrokeAssembler::GetResultIsOperator()) {
 
-                //結果がイコールつまり式の終わりの時
-                if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
-                    resultFrac = StrokeAssembler::GetResultOperand(); 
-                    cal.Put(resultFrac);
+                //式の始まりの時
+                if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_TOP) {
+                    //Serial.println("TOP");
+                    resultOp = StrokeAssembler::GetResultOperator();
+                    cal.Put(resultOp);
                     Serial.print(resultFrac.ToString());
-                    cal.Compute();
-                    cal.TopOfOperandStack(&resultFrac);
-                    StrokeAssembler::ResetFormulaStatus();
-
-                    Serial.print("=");
-                    Serial.println(resultFrac.ToString());
+                    Serial.print(resultOp->token);
                 }
-                //結果がオペレーターでイコールでない時
-                else {
+                //式の途中
+                else if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_STARTED) {
+                    //Serial.println("STARTED");
+
                     resultFrac = StrokeAssembler::GetResultOperand();
                     resultOp = StrokeAssembler::GetResultOperator();
 
@@ -189,6 +250,20 @@ TaskLoop(CaluculateAndOutputTask) {
 
                     Serial.print(resultFrac.ToString());
                     Serial.print(resultOp->token);
+                }
+                //式の終わり
+                else {
+                    //Serial.println("END");
+
+                    resultFrac = StrokeAssembler::GetResultOperand();
+                    Serial.print(resultFrac.ToString());
+
+                    cal.Put(resultFrac);
+                    cal.Compute();
+                    cal.TopOfOperandStack(&resultFrac);
+
+                    Serial.print("=");
+                    Serial.println(resultFrac.ToString());
                 }
             }
         }
