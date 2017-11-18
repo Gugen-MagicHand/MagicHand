@@ -35,7 +35,8 @@ private:
 
 
 
-    static float CalculateSimilarity(const uint8_t *baseFeatures, float *compareFeatures, int featuresCount) __attribute__((__optimize__("O2"))){
+    static float CalculateSimilarity(const uint8_t *baseFeatures, float *compareFeatures, int featuresCount) //__attribute__((__optimize__("O2")))
+    {
 
         float sumOfBaseFeatures = 0.0;
         float sumOfCompareFeatures = 0.0;

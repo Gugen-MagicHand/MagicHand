@@ -13,6 +13,8 @@ FingerTrackDriver ftDriver;
 //FingerTrackSketcherの用意
 FingerTrackSketcher ftSketcher;
 
+StrokeAssembler strokeAssembler;
+
 //CanvasQueueを用意
 CanvasQueue canvasQueue(10, 15, 15);
 
@@ -60,7 +62,15 @@ SemaphoreHandle canvasQueueSem;
 //ストロークキューのセマフォ
 SemaphoreHandle strokeQueueSem;
 
-// End
+// End セマフォ宣言 ------------------
+
+// オペレータ一覧
+OperatorDivide operatorDivide;
+OperatorLeftBracket operatorLeftBracket;
+OperatorMinus operatorMinus;
+OperatorMultiply operatorMultiply;
+OperatorPlus operatorPlus;
+OperatorRightBracket operatorRightBracket;
 
 
 // キャンバスの内容をシリアルモニタに描画
@@ -130,11 +140,12 @@ void setup()
 //ループ関数--------------------------------------------------------------------------------
 void loop()
 {
+
 }
 
 //------------------------------------------------------------------------------------------
 
-
+/*
 String StrokeAssemblerResultToString(StrokeAssembler::RESULT resultToStr) {
     String str;
 
@@ -197,6 +208,73 @@ String StrokeAssemblerResultToString(StrokeAssembler::RESULT resultToStr) {
 
     return str;
 }
+*/
+
+String LiteralToString(LITERAL literalToStr) {
+    String str;
+
+    switch (literalToStr) {
+    case LITERAL::LITERAL_0:
+        str = F("0");
+        break;
+    case LITERAL::LITERAL_1:
+        str = F("1");
+        break;
+    case LITERAL::LITERAL_2:
+        str = F("2");
+        break;
+    case LITERAL::LITERAL_3:
+        str = F("3");
+        break;
+    case LITERAL::LITERAL_4:
+        str = F("4");
+        break;
+    case LITERAL::LITERAL_5:
+        str = F("5");
+        break;
+    case LITERAL::LITERAL_6:
+        str = F("6");
+        break;
+    case LITERAL::LITERAL_7:
+        str = F("7");
+        break;
+    case LITERAL::LITERAL_8:
+        str = F("8");
+        break;
+    case LITERAL::LITERAL_9:
+        str = F("9");
+        break;
+    case LITERAL::LITERAL_PLUS:
+        str = F("+");
+        break;
+    case LITERAL::LITERAL_MINUS:
+        str = F("-");
+        break;
+    case LITERAL::LITERAL_MULTIPLY:
+        str = F("*");
+        break;
+    case LITERAL::LITERAL_DIVIDE:
+        str = F("/");
+        break;
+    case LITERAL::LITERAL_EQUAL:
+        str = F("=");
+        break;
+    case LITERAL::LITERAL_LEFT_BRACKET:
+        str = F("(");
+        break;
+    case LITERAL::LITERAL_RIGHT_BRACKET:
+        str = F(")");
+        break;
+    case LITERAL::LITERAL_DOT:
+        str = F(".");
+        break;
+    case LITERAL::LITERAL_UNKNOWN:
+        str = F("?");
+        break;
+    }
+
+    return str;
+}
 
 //計算、アウトプットのタスク----------------------------------------------------------------
 TaskLoop(CaluculateAndOutputTask) {
@@ -204,15 +282,15 @@ TaskLoop(CaluculateAndOutputTask) {
     //Serial.println("C");
     STROKE stroke;
 
-    static Fraction resultFrac(0);
-    static Operator* resultOp;
+    //static Fraction resultFrac(0);
+    //static Operator* resultOp;
 
     static bool canAssemble = false;
 
     if (Acquire(strokeQueueSem, 1000)) {
         if (strokeQueue.Pop(&stroke)) {
 
-            Serial.println("Pop");
+            //Serial.println("Pop");
             canAssemble = true;
 
         }
@@ -220,6 +298,21 @@ TaskLoop(CaluculateAndOutputTask) {
         Yield();
     }
 
+    if (canAssemble) {
+        //Serial.println("s");
+        strokeAssembler.Assemble(stroke);
+        canAssemble = false;
+    }
+
+    LITERAL lit;
+    //Serial.println(strokeAssembler.literalQueue.Count());
+    while (strokeAssembler.literalQueue.Pop(&lit)) {
+
+        Serial.println(LiteralToString(lit));
+    }
+
+
+    /*
     if (canAssemble) {
         StrokeAssembler::Assemble(stroke);
 
@@ -270,6 +363,7 @@ TaskLoop(CaluculateAndOutputTask) {
 
         canAssemble = false;
     }
+    */
 }
 
 

@@ -5,563 +5,383 @@
 #include "Fraction.h"
 #include "Calculator.h"
 
+#include "Literal.h"
+
+
+
 class StrokeAssembler {
-
 public:
-	enum STATUS {
-		SUCCESS,
-		ASSEMBLING,
-		OVERFLOW,
-		FAILED
-	};
+    static const int LITERAL_QUEUE_CAPACITY = 5;
 
-	enum RESULT {
-		RESULT_LEFT_BRACKET,
-		RESULT_RIGHT_BRACKET,
-		RESULT_0,
-		RESULT_1,
-		RESULT_2,
-		RESULT_3,
-		RESULT_4,
-		RESULT_5,
-		RESULT_6,
-		RESULT_7,
-		RESULT_8,
-		RESULT_9,
-		RESULT_PLUS,
-		RESULT_MINUS,
-		RESULT_MULTIPLY,
-		RESULT_DEVIDE,
-		RESULT_EQUAL,
-		RESULT_UNKNOWN
-	};
-
-	enum FORMUlA_STATUS {
-		FORMULA_TOP,
-		FORMULA_STARTED,
-		FORMULA_END
-	};
-
-public:
-	//結果の場合分け用
-	static RESULT result;
-
-	//組み立ての状態
-	static STATUS status;
-
-	//スペースまでのストロークの数
-	static int count;
-
-	//結果のタイプ識別用
-	static bool resultIsOperator;
-
-	//結果出力用オペレータとオペランド
-	static Operator *ResultOp;
-	static Fraction ResultFrac;
-
-	//結果の数値
-	static int resultNum;
-
-	//途中経過を保持する用sttoke配列
-	static STROKE strokes[3];
-
-	//式の最初を判別するフラグ（マイナスの値用）
-	static FORMUlA_STATUS formulaStatus;
-
-	//桁数を数える
-	static byte digit;
-
-	//マックス桁数
-	static const byte maxDigit = 10;
-
-	//数字を一時保存するための配列
-	static byte numbers[maxDigit];
-
-	//結果のオペレータ一覧
-	static OperatorDivide operatorDivide;
-	static OperatorLeftBracket operatorLeftBracket;
-	static OperatorMinus operatorMinus;
-	static OperatorMultiply operatorMultiply;
-	static OperatorPlus operatorPlus;
-	static OperatorRightBracket operatorRightBracket;
+    static const int WAITING_ASSEMBLED_STROKES_MAX_COUNT = 3;
 
 
-public:
-
-	static void Assemble(STROKE stroke) {
-
-
-		//最初に文字の組み立て
-		AssembleMain(stroke);
-
-
-		//一文字組み立てが成功したとき
-		if (status == SUCCESS) {
-
-
-			//数式の状態の入れ替え
-			if (formulaStatus == FORMULA_TOP) {
-				formulaStatus = FORMULA_STARTED;
-			}
-			else if (formulaStatus == FORMULA_END) {
-				formulaStatus = FORMULA_TOP;
-			}
-
-			//結果のタイプをセット
-			SetResultType();
-
-			//Serial.print(resultIsOperator);
-
-			//結果がオペランドの時
-			if (!resultIsOperator) {
-
-				//桁数がマックス以下かどうか判別
-				if (digit <= maxDigit) {
-
-					switch (result)
-					{
-					case StrokeAssembler::RESULT_0:
-						numbers[digit] = 0;
-						break;
-					case StrokeAssembler::RESULT_1:
-						numbers[digit] = 1;
-						break;
-					case StrokeAssembler::RESULT_2:
-						numbers[digit] = 2;
-						break;
-					case StrokeAssembler::RESULT_3:
-						numbers[digit] = 3;
-						break;
-					case StrokeAssembler::RESULT_4:
-						numbers[digit] = 4;
-						break;
-					case StrokeAssembler::RESULT_5:
-						numbers[digit] = 5;
-						break;
-					case StrokeAssembler::RESULT_6:
-						numbers[digit] = 6;
-						break;
-					case StrokeAssembler::RESULT_7:
-						numbers[digit] = 7;
-						break;
-					case StrokeAssembler::RESULT_8:
-						numbers[digit] = 8;
-						break;
-					case StrokeAssembler::RESULT_9:
-						numbers[digit] = 9;
-						break;
-					}
-
-					digit++;
-				}
-				else {
-					status = OVERFLOW;
-				}
-			}
-
-			//結果がオペレーターの時
-			else {
-
-				//結果をオペレーターポインタに代入
-				switch (result) {
-				case RESULT_LEFT_BRACKET:
-					ResultOp = &operatorLeftBracket;
-					break;
-				case RESULT_RIGHT_BRACKET:
-					ResultOp = &operatorRightBracket;
-					break;
-				case RESULT_PLUS:
-					ResultOp = &operatorPlus;
-					break;
-				case RESULT_MINUS:
-					ResultOp = &operatorMinus;
-					break;
-				case RESULT_MULTIPLY:
-					ResultOp = &operatorMultiply;
-					break;
-				case RESULT_DEVIDE:
-					ResultOp = &operatorDivide;
-					break;
-
-					//イコールの時は結果の代入はしない
-				case RESULT_EQUAL:
-					formulaStatus = FORMULA_END;
-					break;
-				}
-
-				//結果の数値を計算
-				for (int i = 0; i < digit; i++) {
-					resultNum = resultNum + numbers[digit - 1 - i] * pow(10, i);
-
-					//Serial.println(resultNum);
-
-					//結果の数値をfractionに代入
-					ResultFrac.SetNumer(resultNum);
-
-				}
-
-				//桁数、数値を初期化
-				digit = 0;
-				resultNum = 0;
-			}
-
-			//初期化
-			count = 0;
-			//result = RESULT_UNKNOWN;
-
-
-		}
-
-		//Serial.println(resultIsOperator);
-		//Serial.println();
-	}
-
-
-
-
-
-	//結果がオペランドかオペレーターかを判別
-	static bool GetResultIsOperator() {
-		return resultIsOperator;
-	}
-
-	static STATUS GetStatus() {
-		return status;
-	}
-
-	//オペレーターの結果を返す
-	static Operator* GetResultOperator() {
-		return ResultOp;
-	}
-
-	//結果のオペランドを返す
-	static Fraction& GetResultOperand() {
-		return ResultFrac;
-	}
-
-	//数式の状態を返す
-	static FORMUlA_STATUS GetFormulaStatus() {
-		return formulaStatus;
-	}
-
-	//数式の状態をリセット
-	static void ResetFormulaStatus() {
-		formulaStatus = FORMULA_TOP;
-	}
+    // 組み立て結果文字待ち行列
+    Queue<LITERAL> literalQueue;
 
 
 private:
 
-	//スペースがまでのストロークから文字を一文字判別
-	static void AssembleMain(STROKE stroke) {
-
-		//スペースが来たときはリテラルの終了
-		if (stroke == STROKE_SPACE) {
-			//ストロークの初期化
-
-			//結果が不明の時はFAILEDを返す。
-			if (result == RESULT_UNKNOWN) {
-				status = FAILED;
-			}
-			//それ以外の時は成功
-			else {
-				status = SUCCESS;
-			}
-		}
-		//ストローク1回目
-		else {
-
-			if (count == 0) {
-
-				switch (stroke) {
-
-				case STROKE_DOT:
-					result = RESULT_UNKNOWN;
-					break;
-
-				case STROKE_LEFT_BRACKET:
-					result = RESULT_LEFT_BRACKET;
-					break;
-
-				case STROKE_RIGHT_BRACKET:
-					result = RESULT_RIGHT_BRACKET;
-					break;
-
-				case STROKE_0:
-					result = RESULT_0;
-					break;
-
-				case STROKE_2:
-					result = RESULT_2;
-					break;
-
-				case STROKE_3:
-					result = RESULT_3;
-					break;
-
-				case STROKE_6:
-					result = RESULT_6;
-					break;
-
-				case STROKE_8:
-					result = RESULT_8;
-					break;
-
-				case STROKE_9:
-					result = RESULT_9;
-					break;
-
-				case STROKE_VERTICAL_LINE:
-					result = RESULT_1;
-					break;
-
-				case STROKE_HORIZONTAL_LINE:
-					result = RESULT_MINUS;
-					break;
-
-				case STROKE_SLASH:
-					result = RESULT_DEVIDE;
-					break;
-
-				case STROKE_BACK_SLASH:
-					result = RESULT_MULTIPLY;
-					break;
-
-				case STROKE_PART_OF_4:
-				case STROKE_PART_OF_5:
-				case STROKE_PART_OF_7:
-					result = RESULT_UNKNOWN;
-					break;
-				}
-			}
-			//ストローク２回目
-			else if (count == 1) {
-				switch (stroke) {
-					//ストローク２回目に左括弧、右括弧、0、２、３、６、８、９が来たときは、エラー。
-				case STROKE_LEFT_BRACKET:
-				case STROKE_RIGHT_BRACKET:
-				case STROKE_0:
-				case STROKE_2:
-				case STROKE_3:
-				case STROKE_6:
-				case STROKE_8:
-				case STROKE_9:
-					result = RESULT_UNKNOWN;
-					break;
-
-					//２回目のストロークがドットの時
-				case STROKE_DOT:
-					//一つ前のストロークがドットか横線の時は、÷
-					if ((strokes[count - 1] == STROKE::STROKE_HORIZONTAL_LINE) || (strokes[count - 1] == STROKE_DOT)) {
-						strokes[count] = stroke;
-						result = RESULT_DEVIDE;
-					}
-					//その他はエラー
-					else {
-						result = RESULT_UNKNOWN;
-					}
-					break;
-
-					//２回目のストロークが４の一部の時
-				case STROKE_PART_OF_4:
-					//一つ前のストロークが縦線の時、４
-					if (strokes[count - 1] == STROKE_VERTICAL_LINE) {
-						result = RESULT_4;
-					}
-					//その他はエラー
-					else {
-						result = RESULT_UNKNOWN;
-					}
-					break;
-
-					//２回目のストロークが５の一部の時
-				case STROKE_PART_OF_5:
-					//一つ前のストロークが横線の時、５
-					if (strokes[count - 1] == STROKE_HORIZONTAL_LINE) {
-						result = RESULT_5;
-					}
-					//その他はエラー
-					else {
-						result = RESULT_UNKNOWN;
-					}
-					break;
-
-					//２回目のストロークが７の一部の時
-				case STROKE_PART_OF_7:
-					//一つ前のストロークが縦線の時、７
-					if (strokes[count - 1] == STROKE_VERTICAL_LINE) {
-						result = RESULT_7;
-					}
-					//その他の時、不明
-					else {
-						result = RESULT_UNKNOWN;
-					}
-					break;
-
-					//２回目のストロークが縦線の時
-				case STROKE_VERTICAL_LINE:
-					switch (strokes[count - 1]) {
-						//一つ前のストロークが４の一部の時、４
-					case STROKE_PART_OF_4:
-						result = RESULT_4;
-						break;
-
-						//一つ前のストロークが７の時、７
-					case STROKE_PART_OF_7:
-						result = RESULT_7;
-						break;
-
-						//一つ前のストロークが横線の時、＋
-					case STROKE_HORIZONTAL_LINE:
-						result = RESULT_PLUS;
-						break;
-
-						//その他の時はエラー
-					default:
-						result = RESULT_UNKNOWN;
-						break;
-					}
-
-					break;
-
-					//二回目のストロークが横線の時
-				case STROKE_HORIZONTAL_LINE:
-					switch (strokes[count - 1]) {
-						//一つ前のストロークが５の一部の時、５
-					case STROKE_PART_OF_4:
-						result = RESULT_4;
-						break;
-
-						//一つ前のストロークが縦線の時、＋
-					case STROKE_VERTICAL_LINE:
-						result = RESULT_PLUS;
-						break;
-
-						//一つ前のストロークがドットの時、÷
-					case STROKE_DOT:
-						result = RESULT_DEVIDE;
-						break;
-
-						//一つ前のストロークが横線の時、＝
-					case STROKE_HORIZONTAL_LINE:
-						result = RESULT_EQUAL;
-						break;
-						//その他の時はエラー
-					default:
-						result = RESULT_UNKNOWN;
-						break;
-					}
-					break;
-				}
-			}
-			//ストローク３回目
-			else if (count == 2) {
-				switch (stroke) {
-					//３回目のストロークがドットの時
-				case STROKE_DOT:
-					//一回目と二回目のストロークがドットと横線である時、÷
-					if ((strokes[count - 1] == STROKE_DOT && strokes[count - 2] == STROKE_VERTICAL_LINE) || (strokes[count - 1] == STROKE_VERTICAL_LINE && strokes[count - 2] == STROKE_DOT)) {
-						result = RESULT_DEVIDE;
-					}
-					break;
+    //
+    int waitingAssembledStrokesCount = 0;
 
 
-					//３回目のストロークが横線の時
-				case STROKE_HORIZONTAL_LINE:
-					//一回目と二回目のストロークがどちらもドットである時、÷
-					result = RESULT_DEVIDE;
-					break;
-
-					//その他の時、不明
-				default:
-					result = RESULT_UNKNOWN;
-					break;
-				}
-			}
-			//ストロークが四回以上あるとき
-			else {
-				result = RESULT_UNKNOWN;
-			}
-
-			//ストロークが三回以下の時のみ結果を保持
-			if (count < 3) {
-				strokes[count] = stroke;
-			}
-			status = ASSEMBLING;
-			count++;
-		}
-	}
+    // 途中経過を保持する用stroke配列
+    STROKE waitingAssembledStrokes[WAITING_ASSEMBLED_STROKES_MAX_COUNT] = {};
 
 
-	//結果がオペランドかオペレーター化をセットする
-	static void SetResultType(void) {
-		switch (result) {
-		case RESULT_LEFT_BRACKET:
-		case RESULT_RIGHT_BRACKET:
-		case RESULT_PLUS:
-		case RESULT_MINUS:
-		case RESULT_MULTIPLY:
-		case RESULT_DEVIDE:
-		case RESULT_EQUAL:
-			resultIsOperator = true;
-			break;
-		case RESULT_0:
-		case RESULT_1:
-		case RESULT_2:
-		case RESULT_3:
-		case RESULT_4:
-		case RESULT_5:
-		case RESULT_6:
-		case RESULT_7:
-		case RESULT_8:
-		case RESULT_9:
-			resultIsOperator = false;
-			break;
-		}
-	}
+
+public:
+
+    StrokeAssembler() : literalQueue(LITERAL_QUEUE_CAPACITY){
+
+    }
+
+    //
+    //
+    void Assemble(STROKE strokeToAssemble) {
+        //Serial.println("w");
+        // --- ストローク1回目 ----------------------------------------------------
+        if (waitingAssembledStrokesCount == 0) {
+
+            switch (strokeToAssemble) {
+                // --- 一つの文字に対応しているOneStroke ----------------------
+            case STROKE::STROKE_SPACE:
+                break;
+
+            case STROKE::STROKE_LEFT_BRACKET:
+                LiteralQueuePush(LITERAL::LITERAL_LEFT_BRACKET);
+                break;
+
+            case STROKE::STROKE_RIGHT_BRACKET:
+                LiteralQueuePush(LITERAL::LITERAL_RIGHT_BRACKET);
+                break;
+
+            case STROKE::STROKE_0:
+                LiteralQueuePush(LITERAL::LITERAL_0);
+                break;
+
+            case STROKE::STROKE_2:
+                LiteralQueuePush(LITERAL::LITERAL_2);
+                break;
+
+            case STROKE::STROKE_3:
+                LiteralQueuePush(LITERAL::LITERAL_3);
+                break;
+
+            case STROKE::STROKE_6:
+                LiteralQueuePush(LITERAL::LITERAL_6);
+                break;
+
+            case STROKE::STROKE_8:
+                LiteralQueuePush(LITERAL::LITERAL_8);
+                break;
+
+            case STROKE::STROKE_9:
+                LiteralQueuePush(LITERAL::LITERAL_9);
+                break;
+
+            case STROKE::STROKE_DOT:
+                LiteralQueuePush(LITERAL::LITERAL_DOT);
+                break;
+
+
+                // End 一つの文字に対応しているOneStroke ---------------
+
+                // --- ストローク一回では判断できない文字 ------------------
+            case STROKE::STROKE_VERTICAL_LINE:
+            case STROKE::STROKE_HORIZONTAL_LINE:
+            case STROKE::STROKE_SLASH:
+            case STROKE::STROKE_BACK_SLASH:
+            case STROKE::STROKE_PART_OF_4:
+            case STROKE::STROKE_PART_OF_5:
+            case STROKE::STROKE_PART_OF_7:
+                waitingAssembledStrokes[waitingAssembledStrokesCount++] = strokeToAssemble;
+                break;
+                // End ストローク一回では判断できない文字 ----------------
+
+            default:
+                LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+                break;
+            }
+        } // End ストローク一回目 -------------------------------------------------------
+
+          // --- ストローク2回目以上, MaxCountより小さい ----------------------------------------------------------
+        else if (waitingAssembledStrokesCount >= 1 && waitingAssembledStrokesCount < WAITING_ASSEMBLED_STROKES_MAX_COUNT) {
+
+            STROKE prevStroke = waitingAssembledStrokes[waitingAssembledStrokesCount - 1];
+
+            if (IsRelated(prevStroke, strokeToAssemble)) {
+
+                waitingAssembledStrokes[waitingAssembledStrokesCount++] = strokeToAssemble;
+            }
+            else {
+                AssembleFromWaitingAssembledStrokes();
+            }
+        } // End ストローク2回目,  MaxCountより小さい--------------------------
+
+        else {
+
+            LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+            waitingAssembledStrokesCount = 0;
+        }
+    }
+
+
+
+
+
+
+private:
+    void LiteralQueuePush(LITERAL lieralToPush) {
+        while (!literalQueue.Push(lieralToPush)) {
+            // literalQueueにPushできるまで, Popする.
+            LITERAL temp;
+            literalQueue.Pop(&temp);
+        }
+
+        return;
+    }
+
+    /*
+    switch (stroke) {
+    case STROKE::STROKE_SPACE:
+    case STROKE::STROKE_DOT:
+    case STROKE::STROKE_LEFT_BRACKET:
+    case STROKE::STROKE_RIGHT_BRACKET:
+    case STROKE::STROKE_0:
+    case STROKE::STROKE_2:
+    case STROKE::STROKE_3:
+    case STROKE::STROKE_PART_OF_4:
+    case STROKE::STROKE_PART_OF_5:
+    case STROKE::STROKE_6:
+    case STROKE::STROKE_PART_OF_7:
+    case STROKE::STROKE_8:
+    case STROKE::STROKE_9:
+    case STROKE::STROKE_VERTICAL_LINE:
+    case STROKE::STROKE_HORIZONTAL_LINE:
+    case STROKE::STROKE_SLASH:
+    case STROKE::STROKE_BACK_SLASH:
+    }
+    */
+
+    void AssembleFromWaitingAssembledStrokes() {
+        if (waitingAssembledStrokesCount == 1) {
+            STROKE stroke = waitingAssembledStrokes[0];
+
+            switch (stroke) {
+            case STROKE::STROKE_DOT:
+                LiteralQueuePush(LITERAL::LITERAL_DOT);
+                break;
+            case STROKE::STROKE_LEFT_BRACKET:
+                LiteralQueuePush(LITERAL::LITERAL_LEFT_BRACKET);
+                break;
+            case STROKE::STROKE_RIGHT_BRACKET:
+                LiteralQueuePush(LITERAL::LITERAL_RIGHT_BRACKET);
+                break;
+            case STROKE::STROKE_0:
+                LiteralQueuePush(LITERAL::LITERAL_0);
+                break;
+            case STROKE::STROKE_VERTICAL_LINE:
+                LiteralQueuePush(LITERAL::LITERAL_1);
+                break;
+            case STROKE::STROKE_2:
+                LiteralQueuePush(LITERAL::LITERAL_2);
+                break;
+            case STROKE::STROKE_3:
+                LiteralQueuePush(LITERAL::LITERAL_3);
+                break;
+            case STROKE::STROKE_6:
+                LiteralQueuePush(LITERAL::LITERAL_6);
+                break;
+            case STROKE::STROKE_8:
+                LiteralQueuePush(LITERAL::LITERAL_8);
+                break;
+            case STROKE::STROKE_9:
+                LiteralQueuePush(LITERAL::LITERAL_9);
+                break;
+            case STROKE::STROKE_HORIZONTAL_LINE:
+                LiteralQueuePush(LITERAL::LITERAL_MINUS);
+                break;
+            case STROKE::STROKE_SLASH:
+                LiteralQueuePush(LITERAL::LITERAL_DIVIDE);
+                break;
+            default:
+                LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+                break;
+            }
+
+
+        }
+        else if (waitingAssembledStrokesCount == 2) {
+            STROKE prevStroke = waitingAssembledStrokes[0];
+            STROKE stroke = waitingAssembledStrokes[1];
+            /*
+            Serial.println("T");
+            Serial.println(prevStroke);
+            Serial.println(stroke);
+            */
+            if (prevStroke == STROKE::STROKE_PART_OF_4 && stroke == STROKE::STROKE_VERTICAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_4);
+            }
+            else if (prevStroke == STROKE::STROKE_PART_OF_5 && stroke == STROKE::STROKE_HORIZONTAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_5);
+            }
+            else if (prevStroke == STROKE::STROKE_HORIZONTAL_LINE && stroke == STROKE::STROKE_PART_OF_5) {
+                LiteralQueuePush(LITERAL::LITERAL_5);
+            }
+            else if (prevStroke == STROKE::STROKE_VERTICAL_LINE && stroke == STROKE::STROKE_PART_OF_7) {
+                LiteralQueuePush(LITERAL::LITERAL_7);
+            }
+            else if (prevStroke == STROKE::STROKE_SLASH && stroke == STROKE::STROKE_BACK_SLASH) {
+                LiteralQueuePush(LITERAL::LITERAL_MULTIPLY);
+            }
+            else if (prevStroke == STROKE::STROKE_BACK_SLASH && stroke == STROKE::STROKE_SLASH) {
+                LiteralQueuePush(LITERAL::LITERAL_MULTIPLY);
+            }
+            else if (prevStroke == STROKE::STROKE_HORIZONTAL_LINE && stroke == STROKE::STROKE_VERTICAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_PLUS);
+            }
+            else if (prevStroke == STROKE::STROKE_VERTICAL_LINE && stroke == STROKE::STROKE_HORIZONTAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_PLUS);
+            }
+            else if (prevStroke == STROKE::STROKE_HORIZONTAL_LINE && stroke == STROKE::STROKE_HORIZONTAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_EQUAL);
+            }
+            else {
+                LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+            }
+        }
+        else if (waitingAssembledStrokesCount == 3) {
+            STROKE prevPrevStroke = waitingAssembledStrokes[0];
+            STROKE prevStroke = waitingAssembledStrokes[1];
+            STROKE stroke = waitingAssembledStrokes[2];
+
+            if (prevPrevStroke == STROKE::STROKE_HORIZONTAL_LINE && prevStroke == STROKE::STROKE_DOT && stroke == STROKE::STROKE_DOT) {
+                LiteralQueuePush(LITERAL::LITERAL_DIVIDE);
+            }
+            else if (prevPrevStroke == STROKE::STROKE_DOT && prevStroke == STROKE::STROKE_DOT && stroke == STROKE::STROKE_HORIZONTAL_LINE) {
+                LiteralQueuePush(LITERAL::LITERAL_DIVIDE);
+            }
+            else {
+                LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+            }
+        }
+
+        waitingAssembledStrokesCount = 0;
+    }
+
+    bool IsRelated(STROKE leftStroke, STROKE rightStroke) {
+        switch (leftStroke) {
+        case STROKE::STROKE_SPACE:
+            return false;
+
+        case STROKE::STROKE_DOT:
+            switch (rightStroke) {
+            case STROKE::STROKE_DOT:
+            case STROKE::STROKE_HORIZONTAL_LINE:
+                return true;
+
+            default:
+                return false;
+
+            }
+            break;
+
+        case STROKE::STROKE_LEFT_BRACKET:
+            return false;
+
+        case STROKE::STROKE_RIGHT_BRACKET:
+            return false;
+
+        case STROKE::STROKE_0:
+            return false;
+
+        case STROKE::STROKE_2:
+            return false;
+
+        case STROKE::STROKE_3:
+            return false;
+
+        case STROKE::STROKE_PART_OF_4:
+            switch (rightStroke) {
+            case STROKE::STROKE_VERTICAL_LINE:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+
+        case STROKE::STROKE_PART_OF_5:
+            switch (rightStroke) {
+            case STROKE::STROKE_HORIZONTAL_LINE:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+
+        case STROKE::STROKE_6:
+            return false;
+
+        case STROKE::STROKE_PART_OF_7:
+            return false;
+
+        case STROKE::STROKE_8:
+            return false;
+
+        case STROKE::STROKE_9:
+            return false;
+
+        case STROKE::STROKE_VERTICAL_LINE:
+            switch (rightStroke) {
+            case STROKE::STROKE_HORIZONTAL_LINE:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+
+        case STROKE::STROKE_HORIZONTAL_LINE:
+            switch (rightStroke) {
+            case STROKE::STROKE_PART_OF_5:
+            case STROKE::STROKE_HORIZONTAL_LINE:
+            case STROKE::STROKE_VERTICAL_LINE:
+            case STROKE::STROKE_DOT:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+
+        case STROKE::STROKE_SLASH:
+            switch (rightStroke) {
+            case STROKE::STROKE_BACK_SLASH:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+
+        case STROKE::STROKE_BACK_SLASH:
+            switch (rightStroke) {
+            case STROKE::STROKE_SLASH:
+                return true;
+
+            default:
+                return false;
+            }
+            break;
+        }
+
+        return false;
+    }
+
 };
-
-
-
-//変数の初期化
-
-//結果の場合分け用
-StrokeAssembler::RESULT StrokeAssembler::result = RESULT_UNKNOWN;
-
-//組み立ての状態
-StrokeAssembler::STATUS StrokeAssembler::status = FAILED;
-
-//スペースまでのストロークの数
-int StrokeAssembler::count = 0;
-
-//結果のタイプ識別用
-bool StrokeAssembler::resultIsOperator = true;
-
-//結果出力用オペレータとオペランド
-Operator* StrokeAssembler::ResultOp;
-Fraction StrokeAssembler::ResultFrac;
-
-//結果の数値
-int StrokeAssembler::resultNum = 0;
-
-//途中経過を保持する用sttoke配列
-STROKE StrokeAssembler::strokes[3] = { STROKE_SPACE, STROKE_SPACE, STROKE_SPACE };
-
-//数字を一時保存するための配列
-byte StrokeAssembler::numbers[maxDigit];
-
-//式の最初を判別するフラグ（マイナスの値用）
-StrokeAssembler::FORMUlA_STATUS StrokeAssembler::formulaStatus = FORMULA_END;
-
-//桁数を数える
-byte StrokeAssembler::digit = 0;
-
-//結果のオペレータ一覧
-OperatorDivide StrokeAssembler::operatorDivide;
-OperatorLeftBracket StrokeAssembler::operatorLeftBracket;
-OperatorMinus StrokeAssembler::operatorMinus;
-OperatorMultiply StrokeAssembler::operatorMultiply;
-OperatorPlus StrokeAssembler::operatorPlus;
-OperatorRightBracket StrokeAssembler::operatorRightBracket;
 
 #endif

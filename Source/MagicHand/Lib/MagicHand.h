@@ -42,6 +42,7 @@
 // End Pattern Recognition -----
 
 // --- StrokeAssembler-------
+#include "Literal.h"
 #include "StrokeAssembler.h"
 
 //End StrokeAssembler----------
