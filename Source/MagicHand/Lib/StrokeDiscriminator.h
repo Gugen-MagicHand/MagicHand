@@ -38,35 +38,39 @@ private:
     static float CalculateSimilarity(const uint8_t *baseFeatures, float *compareFeatures, int featuresCount) //__attribute__((__optimize__("O2")))
     {
 
-        float sumOfBaseFeatures = 0.0;
-        float sumOfCompareFeatures = 0.0;
-        float dot = 0.0;
+        unsigned int sumOfBaseFeatures = 0;
+        unsigned int sumOfCompareFeatures = 0;
+        unsigned int dot = 0;
 
         for (int i = 0; i < featuresCount; i++) {
-            float baseFeature = ((unsigned char)pgm_read_byte_near(&baseFeatures[i])) / 255.0;
-            float compareFeature = compareFeatures[i];
+            unsigned int baseFeature = ((unsigned char)pgm_read_byte_near(&baseFeatures[i]));
+            unsigned int compareFeature = compareFeatures[i] * BASE_FEATURE_MAX_VAL;
 
             sumOfBaseFeatures += baseFeature * baseFeature;
             sumOfCompareFeatures += compareFeature * compareFeature;
 
             dot += baseFeature * compareFeature;
 
+            //Serial.println(sumOfBaseFeatures);
+            //Serial.println(sumOfCompareFeatures);
+            //Serial.println(dot);
+
             //Serial.println(baseFeature);
             //Serial.println((int)pgm_read_byte_near(&baseFeatures[i]));
         }
 
         // 両方点のとき
-        if (sumOfBaseFeatures == 0.0 && sumOfCompareFeatures == 0.0) {
+        if (sumOfBaseFeatures == 0 && sumOfCompareFeatures == 0) {
             return 1.0;
         }
 
         // 片方が点で, 他方がベクトルのとき
-        if ((sumOfBaseFeatures == 0.0 || sumOfCompareFeatures == 0.0)
+        if ((sumOfBaseFeatures == 0 || sumOfCompareFeatures == 0)
             && (sumOfBaseFeatures != sumOfCompareFeatures)) {
             return 0.0;
         }
 
-        return dot / sqrt((sumOfBaseFeatures) * (sumOfCompareFeatures));
+        return dot / (float)sqrt((sumOfBaseFeatures) * (unsigned long)(sumOfCompareFeatures));
     }
 
 
@@ -112,9 +116,11 @@ public:
             return STROKE::STROKE_DOT;
         }
 
+        //unsigned long time = millis();
+
         // HOG特徴を求める
         TinyHOG::HOG(compareImage, compareFeatures, IMAGE_SIZE, IMAGE_SIZE, CELL_SIZE, ORIENTATION);
-
+        
         /*
         for (int i = 0; i < FEATURES_COUNT / ORIENTATION; i++) {
             for (int j = 0; j < ORIENTATION; j++) {
@@ -124,9 +130,12 @@ public:
             Serial.println("");
         }
         Serial.println("-");
-
-        Serial.println("Sim:");
         */
+        //Serial.println(millis() - time);
+        //time = millis();
+        
+        //Serial.println("Sim:");
+        
         float maxSimilarity = 0.0;
         STROKE similarStroke = STROKE::STROKE_SPACE;
 
@@ -151,12 +160,14 @@ public:
                 similarStroke = (STROKE)stroke;
             }
 
-            /*
-            Serial.print(stroke);
-            Serial.print(": ");
-            Serial.println(similarity, 4);
-            */
+            
+            //Serial.print(stroke);
+            //Serial.print(": ");
+            //Serial.println(similarity, 4);
+            
         }
+
+        //Serial.println(millis() - time);
 
         return similarStroke;
     }

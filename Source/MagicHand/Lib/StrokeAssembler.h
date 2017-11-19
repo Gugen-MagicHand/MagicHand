@@ -33,7 +33,7 @@ private:
 
 public:
 
-    StrokeAssembler() : literalQueue(LITERAL_QUEUE_CAPACITY){
+    StrokeAssembler() : literalQueue(LITERAL_QUEUE_CAPACITY) {
 
     }
 
@@ -43,67 +43,8 @@ public:
         //Serial.println("w");
         // --- ストローク1回目 ----------------------------------------------------
         if (waitingAssembledStrokesCount == 0) {
+            AssembleOneStroke(strokeToAssemble);
 
-            switch (strokeToAssemble) {
-                // --- 一つの文字に対応しているOneStroke ----------------------
-            case STROKE::STROKE_SPACE:
-                break;
-
-            case STROKE::STROKE_LEFT_BRACKET:
-                LiteralQueuePush(LITERAL::LITERAL_LEFT_BRACKET);
-                break;
-
-            case STROKE::STROKE_RIGHT_BRACKET:
-                LiteralQueuePush(LITERAL::LITERAL_RIGHT_BRACKET);
-                break;
-
-            case STROKE::STROKE_0:
-                LiteralQueuePush(LITERAL::LITERAL_0);
-                break;
-
-            case STROKE::STROKE_2:
-                LiteralQueuePush(LITERAL::LITERAL_2);
-                break;
-
-            case STROKE::STROKE_3:
-                LiteralQueuePush(LITERAL::LITERAL_3);
-                break;
-
-            case STROKE::STROKE_6:
-                LiteralQueuePush(LITERAL::LITERAL_6);
-                break;
-
-            case STROKE::STROKE_8:
-                LiteralQueuePush(LITERAL::LITERAL_8);
-                break;
-
-            case STROKE::STROKE_9:
-                LiteralQueuePush(LITERAL::LITERAL_9);
-                break;
-
-            case STROKE::STROKE_DOT:
-                LiteralQueuePush(LITERAL::LITERAL_DOT);
-                break;
-
-
-                // End 一つの文字に対応しているOneStroke ---------------
-
-                // --- ストローク一回では判断できない文字 ------------------
-            case STROKE::STROKE_VERTICAL_LINE:
-            case STROKE::STROKE_HORIZONTAL_LINE:
-            case STROKE::STROKE_SLASH:
-            case STROKE::STROKE_BACK_SLASH:
-            case STROKE::STROKE_PART_OF_4:
-            case STROKE::STROKE_PART_OF_5:
-            case STROKE::STROKE_PART_OF_7:
-                waitingAssembledStrokes[waitingAssembledStrokesCount++] = strokeToAssemble;
-                break;
-                // End ストローク一回では判断できない文字 ----------------
-
-            default:
-                LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
-                break;
-            }
         } // End ストローク一回目 -------------------------------------------------------
 
           // --- ストローク2回目以上, MaxCountより小さい ----------------------------------------------------------
@@ -111,14 +52,20 @@ public:
 
             STROKE prevStroke = waitingAssembledStrokes[waitingAssembledStrokesCount - 1];
 
-            if (IsRelated(prevStroke, strokeToAssemble)) {
-
+            if (IsAssociatedWith(prevStroke, strokeToAssemble)) {
+                // 直前のストロークと関係がある場合
                 waitingAssembledStrokes[waitingAssembledStrokesCount++] = strokeToAssemble;
             }
             else {
+                // 直前のストロークと関係がない場合
+
+                // まず, 過去のストロークを組み立てる.
                 AssembleFromWaitingAssembledStrokes();
+
+                // 次に, 今のストロークを組み立てる.
+                AssembleOneStroke(strokeToAssemble);
             }
-        } // End ストローク2回目,  MaxCountより小さい--------------------------
+        } // End ストローク2回目以上,  MaxCountより小さい--------------------------
 
         else {
 
@@ -164,6 +111,69 @@ private:
     case STROKE::STROKE_BACK_SLASH:
     }
     */
+
+    void AssembleOneStroke(STROKE oneStrokeToAssemble) {
+        switch (oneStrokeToAssemble) {
+            // --- 一つの文字に対応しているOneStroke ----------------------
+        case STROKE::STROKE_SPACE:
+            break;
+
+        case STROKE::STROKE_LEFT_BRACKET:
+            LiteralQueuePush(LITERAL::LITERAL_LEFT_BRACKET);
+            break;
+
+        case STROKE::STROKE_RIGHT_BRACKET:
+            LiteralQueuePush(LITERAL::LITERAL_RIGHT_BRACKET);
+            break;
+
+        case STROKE::STROKE_0:
+            LiteralQueuePush(LITERAL::LITERAL_0);
+            break;
+
+        case STROKE::STROKE_2:
+            LiteralQueuePush(LITERAL::LITERAL_2);
+            break;
+
+        case STROKE::STROKE_3:
+            LiteralQueuePush(LITERAL::LITERAL_3);
+            break;
+
+        case STROKE::STROKE_6:
+            LiteralQueuePush(LITERAL::LITERAL_6);
+            break;
+
+        case STROKE::STROKE_8:
+            LiteralQueuePush(LITERAL::LITERAL_8);
+            break;
+
+        case STROKE::STROKE_9:
+            LiteralQueuePush(LITERAL::LITERAL_9);
+            break;
+
+        case STROKE::STROKE_DOT:
+            LiteralQueuePush(LITERAL::LITERAL_DOT);
+            break;
+
+
+            // End 一つの文字に対応しているOneStroke ---------------
+
+            // --- ストローク一回では判断できない文字 ------------------
+        case STROKE::STROKE_VERTICAL_LINE:
+        case STROKE::STROKE_HORIZONTAL_LINE:
+        case STROKE::STROKE_SLASH:
+        case STROKE::STROKE_BACK_SLASH:
+        case STROKE::STROKE_PART_OF_4:
+        case STROKE::STROKE_PART_OF_5:
+        case STROKE::STROKE_PART_OF_7:
+            waitingAssembledStrokes[waitingAssembledStrokesCount++] = oneStrokeToAssemble;
+            break;
+            // End ストローク一回では判断できない文字 ----------------
+
+        default:
+            LiteralQueuePush(LITERAL::LITERAL_UNKNOWN);
+            break;
+        }
+    }
 
     void AssembleFromWaitingAssembledStrokes() {
         if (waitingAssembledStrokesCount == 1) {
@@ -271,7 +281,7 @@ private:
         waitingAssembledStrokesCount = 0;
     }
 
-    bool IsRelated(STROKE leftStroke, STROKE rightStroke) {
+    bool IsAssociatedWith(STROKE leftStroke, STROKE rightStroke) {
         switch (leftStroke) {
         case STROKE::STROKE_SPACE:
             return false;
