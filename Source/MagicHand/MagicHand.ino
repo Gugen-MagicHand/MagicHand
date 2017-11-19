@@ -7,13 +7,19 @@ static const unsigned long LITERAL_INTERVAL_TIME = 500;
 
 static const unsigned long SKETCH_INTERVAL_TIME = 10;
 
-//FingerTrackDriverの用意
+// FingerTrackDriverの用意
 FingerTrackDriver ftDriver;
 
-//FingerTrackSketcherの用意
+// FingerTrackSketcherの用意
 FingerTrackSketcher ftSketcher;
 
-//CanvasQueueを用意
+// StrokeAssemblerの用意
+StrokeAssembler strokeAssembler;
+
+// LiteralFractionの用意
+LiteralFraction literalFraction;
+
+// CanvasQueueを用意
 CanvasQueue canvasQueue(10, 15, 15);
 
 //Discriminator用canvas
@@ -60,7 +66,15 @@ SemaphoreHandle canvasQueueSem;
 //ストロークキューのセマフォ
 SemaphoreHandle strokeQueueSem;
 
-// End
+// End セマフォ宣言 ------------------
+
+// オペレータ一覧
+OperatorDivide operatorDivide;
+OperatorLeftBracket operatorLeftBracket;
+OperatorMinus operatorMinus;
+OperatorMultiply operatorMultiply;
+OperatorPlus operatorPlus;
+OperatorRightBracket operatorRightBracket;
 
 
 // キャンバスの内容をシリアルモニタに描画
@@ -124,12 +138,48 @@ void setup()
     CreateBinarySemaphore(strokeQueueSem);
 
     //InitMainLoopStackSize(200);
+    
+
 }
 
 
 //ループ関数--------------------------------------------------------------------------------
 void loop()
 {
+    /*
+    LITERAL lit;
+
+    LiteralQueue literalQueue(5);
+
+    literalQueue.Push(LITERAL_0);
+    literalQueue.Push(LITERAL_1);
+
+    literalQueue.Pop(&lit);
+    literalQueue.PopBack(&lit);
+    literalQueue.Push(LITERAL_3);
+
+    //Serial.println(literalQueue.Count());
+
+    for (int i = 0; i < literalQueue.Count(); i++) {
+        Serial.println(literalQueue[i]);
+    }
+
+    while (true);
+    */
+    /*
+    literalFraction.Put(LITERAL::LITERAL_1);
+    literalFraction.Put(LITERAL::LITERAL_DOT);
+    literalFraction.Put(LITERAL::LITERAL_2);
+    literalFraction.Put(LITERAL::LITERAL_8);
+    // literalFraction.BackSpace();
+    // literalFraction.BackSpace();
+    // literalFraction.BackSpace();
+    //Serial.println(literalFraction.SignificandCount());
+    //literalFraction.Put(LITERAL::LITERAL_2);
+    Serial.println(literalFraction.ToFraction().ToString());
+
+    while (true);
+    */
 }
 
 //------------------------------------------------------------------------------------------
@@ -138,18 +188,19 @@ void loop()
 //計算、アウトプットのタスク----------------------------------------------------------------
 TaskLoop(CaluculateAndOutputTask) {
 
+
     //Serial.println("C");
     STROKE stroke;
 
-    static Fraction resultFrac(0);
-    static Operator* resultOp;
+    //static Fraction resultFrac(0);
+    //static Operator* resultOp;
 
     static bool canAssemble = false;
 
     if (Acquire(strokeQueueSem, 1000)) {
         if (strokeQueue.Pop(&stroke)) {
 
-           Serial.println("Pop");
+            //Serial.println("Pop");
             canAssemble = true;
 
         }
@@ -158,43 +209,23 @@ TaskLoop(CaluculateAndOutputTask) {
     }
 
     if (canAssemble) {
-        StrokeAssembler::Assemble(stroke);
-
-        if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
-
-            Serial.print("[Cur] ");
-            Serial.println(StrokeAssembler::ResultToString(StrokeAssembler::result));
-
-            if (StrokeAssembler::GetResultIsOperator()) {
-
-                //結果がイコールつまり式の終わりの時
-                if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_END) {
-                    resultFrac = StrokeAssembler::GetResultOperand(); 
-                    cal.Put(resultFrac);
-                    Serial.print(resultFrac.ToString());
-                    cal.Compute();
-                    cal.TopOfOperandStack(&resultFrac);
-                    StrokeAssembler::ResetFormulaStatus();
-
-                    Serial.print("=");
-                    Serial.println(resultFrac.ToString());
-                }
-                //結果がオペレーターでイコールでない時
-                else {
-                    resultFrac = StrokeAssembler::GetResultOperand();
-                    resultOp = StrokeAssembler::GetResultOperator();
-
-                    cal.Put(resultFrac);
-                    cal.Put(resultOp);
-
-                    Serial.print(resultFrac.ToString());
-                    Serial.print(resultOp->token);
-                }
-            }
-        }
-
+        //Serial.println("s");
+        strokeAssembler.Assemble(stroke);
         canAssemble = false;
     }
+
+    LITERAL lit;
+    //Serial.println(strokeAssembler.literalQueue.Count());
+    while (strokeAssembler.literalQueue.Pop(&lit)) {
+
+        Serial.println(LiteralToString(lit));
+
+        // 数字の場合
+
+
+    }
+
+
 }
 
 
