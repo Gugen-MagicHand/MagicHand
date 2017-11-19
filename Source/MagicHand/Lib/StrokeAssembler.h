@@ -52,6 +52,9 @@ public:
 
             STROKE prevStroke = waitingAssembledStrokes[waitingAssembledStrokesCount - 1];
 
+            //Serial.println(prevStroke);
+            //Serial.println(strokeToAssemble);
+
             if (IsAssociatedWith(prevStroke, strokeToAssemble)) {
                 // 直前のストロークと関係がある場合
                 waitingAssembledStrokes[waitingAssembledStrokesCount++] = strokeToAssemble;
@@ -348,6 +351,7 @@ private:
         case STROKE::STROKE_VERTICAL_LINE:
             switch (rightStroke) {
             case STROKE::STROKE_HORIZONTAL_LINE:
+            case STROKE::STROKE_PART_OF_7:
                 return true;
 
             default:

@@ -134,6 +134,21 @@ void setup()
     CreateBinarySemaphore(strokeQueueSem);
 
     //InitMainLoopStackSize(200);
+    /*
+
+    LiteralQueue literalQueue(5);
+
+    literalQueue.Push(LITERAL_0);
+    literalQueue.Push(LITERAL_1);
+    literalQueue.Push(LITERAL_3);
+    LITERAL lit;
+    literalQueue.PopBack(&lit);
+    Serial.println(lit);
+    literalQueue.Pop(&lit);
+    Serial.println(lit);
+    literalQueue.Pop(&lit);
+    Serial.println(lit);
+    */
 }
 
 
@@ -276,8 +291,10 @@ String LiteralToString(LITERAL literalToStr) {
     return str;
 }
 
+
 //計算、アウトプットのタスク----------------------------------------------------------------
 TaskLoop(CaluculateAndOutputTask) {
+
 
     //Serial.println("C");
     STROKE stroke;
@@ -309,61 +326,13 @@ TaskLoop(CaluculateAndOutputTask) {
     while (strokeAssembler.literalQueue.Pop(&lit)) {
 
         Serial.println(LiteralToString(lit));
+
+        // 数字の場合
+
+
     }
 
 
-    /*
-    if (canAssemble) {
-        StrokeAssembler::Assemble(stroke);
-
-        if (StrokeAssembler::status == StrokeAssembler::SUCCESS) {
-
-            Serial.print("[Cur] ");
-            Serial.println(StrokeAssemblerResultToString(StrokeAssembler::result));
-
-            if (StrokeAssembler::GetResultIsOperator()) {
-
-                //式の始まりの時
-                if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_TOP) {
-                    //Serial.println("TOP");
-                    resultOp = StrokeAssembler::GetResultOperator();
-                    cal.Put(resultOp);
-                    Serial.print(resultFrac.ToString());
-                    Serial.print(resultOp->token);
-                }
-                //式の途中
-                else if (StrokeAssembler::GetFormulaStatus() == StrokeAssembler::FORMULA_STARTED) {
-                    //Serial.println("STARTED");
-
-                    resultFrac = StrokeAssembler::GetResultOperand();
-                    resultOp = StrokeAssembler::GetResultOperator();
-
-                    cal.Put(resultFrac);
-                    cal.Put(resultOp);
-
-                    Serial.print(resultFrac.ToString());
-                    Serial.print(resultOp->token);
-                }
-                //式の終わり
-                else {
-                    //Serial.println("END");
-
-                    resultFrac = StrokeAssembler::GetResultOperand();
-                    Serial.print(resultFrac.ToString());
-
-                    cal.Put(resultFrac);
-                    cal.Compute();
-                    cal.TopOfOperandStack(&resultFrac);
-
-                    Serial.print("=");
-                    Serial.println(resultFrac.ToString());
-                }
-            }
-        }
-
-        canAssemble = false;
-    }
-    */
 }
 
 
