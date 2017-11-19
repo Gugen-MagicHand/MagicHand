@@ -138,21 +138,7 @@ void setup()
     CreateBinarySemaphore(strokeQueueSem);
 
     //InitMainLoopStackSize(200);
-    /*
-
-    LiteralQueue literalQueue(5);
-
-    literalQueue.Push(LITERAL_0);
-    literalQueue.Push(LITERAL_1);
-    literalQueue.Push(LITERAL_3);
-    LITERAL lit;
-    literalQueue.PopBack(&lit);
-    Serial.println(lit);
-    literalQueue.Pop(&lit);
-    Serial.println(lit);
-    literalQueue.Pop(&lit);
-    Serial.println(lit);
-    */
+    
 
 }
 
@@ -160,153 +146,43 @@ void setup()
 //ループ関数--------------------------------------------------------------------------------
 void loop()
 {
+    /*
+    LITERAL lit;
 
-    //literalFraction.Put(LITERAL::LITERAL_0);
-    //literalFraction.Put(LITERAL::LITERAL_DOT);
-    //literalFraction.Put(LITERAL::LITERAL_0);
-    //literalFraction.Put(LITERAL::LITERAL_1);
-    //literalFraction.BackSpace();
-    //literalFraction.BackSpace();
-    //literalFraction.BackSpace();
+    LiteralQueue literalQueue(5);
+
+    literalQueue.Push(LITERAL_0);
+    literalQueue.Push(LITERAL_1);
+
+    literalQueue.Pop(&lit);
+    literalQueue.PopBack(&lit);
+    literalQueue.Push(LITERAL_3);
+
+    //Serial.println(literalQueue.Count());
+
+    for (int i = 0; i < literalQueue.Count(); i++) {
+        Serial.println(literalQueue[i]);
+    }
+
+    while (true);
+    */
+    /*
+    literalFraction.Put(LITERAL::LITERAL_1);
+    literalFraction.Put(LITERAL::LITERAL_DOT);
+    literalFraction.Put(LITERAL::LITERAL_2);
+    literalFraction.Put(LITERAL::LITERAL_8);
+    // literalFraction.BackSpace();
+    // literalFraction.BackSpace();
+    // literalFraction.BackSpace();
     //Serial.println(literalFraction.SignificandCount());
     //literalFraction.Put(LITERAL::LITERAL_2);
-    //Serial.println(literalFraction.ToFraction().ToString());
+    Serial.println(literalFraction.ToFraction().ToString());
 
-    //while (true);
+    while (true);
+    */
 }
 
 //------------------------------------------------------------------------------------------
-
-/*
-String StrokeAssemblerResultToString(StrokeAssembler::RESULT resultToStr) {
-    String str;
-
-    switch (resultToStr) {
-    case StrokeAssembler::RESULT::RESULT_LEFT_BRACKET:
-        str = F("(");
-        break;
-    case StrokeAssembler::RESULT::RESULT_RIGHT_BRACKET:
-        str = F(")");
-        break;
-    case StrokeAssembler::RESULT::RESULT_0:
-        str = F("0");
-        break;
-    case StrokeAssembler::RESULT::RESULT_1:
-        str = F("1");
-        break;
-    case StrokeAssembler::RESULT::RESULT_2:
-        str = F("2");
-        break;
-    case StrokeAssembler::RESULT::RESULT_3:
-        str = F("3");
-        break;
-    case StrokeAssembler::RESULT::RESULT_4:
-        str = F("4");
-        break;
-    case StrokeAssembler::RESULT::RESULT_5:
-        str = F("5");
-        break;
-    case StrokeAssembler::RESULT::RESULT_6:
-        str = F("6");
-        break;
-    case StrokeAssembler::RESULT::RESULT_7:
-        str = F("7");
-        break;
-    case StrokeAssembler::RESULT::RESULT_8:
-        str = F("8");
-        break;
-    case StrokeAssembler::RESULT::RESULT_9:
-        str = F("9");
-        break;
-    case StrokeAssembler::RESULT::RESULT_PLUS:
-        str = F("+");
-        break;
-    case StrokeAssembler::RESULT::RESULT_MINUS:
-        str = F("-");
-        break;
-    case StrokeAssembler::RESULT::RESULT_MULTIPLY:
-        str = F("*");
-        break;
-    case StrokeAssembler::RESULT::RESULT_DEVIDE:
-        str = F("/");
-        break;
-    case StrokeAssembler::RESULT::RESULT_EQUAL:
-        str = F("=");
-        break;
-    case StrokeAssembler::RESULT::RESULT_UNKNOWN:
-        str = F("?");
-        break;
-    }
-
-    return str;
-}
-*/
-
-String LiteralToString(LITERAL literalToStr) {
-    String str;
-
-    switch (literalToStr) {
-    case LITERAL::LITERAL_0:
-        str = F("0");
-        break;
-    case LITERAL::LITERAL_1:
-        str = F("1");
-        break;
-    case LITERAL::LITERAL_2:
-        str = F("2");
-        break;
-    case LITERAL::LITERAL_3:
-        str = F("3");
-        break;
-    case LITERAL::LITERAL_4:
-        str = F("4");
-        break;
-    case LITERAL::LITERAL_5:
-        str = F("5");
-        break;
-    case LITERAL::LITERAL_6:
-        str = F("6");
-        break;
-    case LITERAL::LITERAL_7:
-        str = F("7");
-        break;
-    case LITERAL::LITERAL_8:
-        str = F("8");
-        break;
-    case LITERAL::LITERAL_9:
-        str = F("9");
-        break;
-    case LITERAL::LITERAL_PLUS:
-        str = F("+");
-        break;
-    case LITERAL::LITERAL_MINUS:
-        str = F("-");
-        break;
-    case LITERAL::LITERAL_MULTIPLY:
-        str = F("*");
-        break;
-    case LITERAL::LITERAL_DIVIDE:
-        str = F("/");
-        break;
-    case LITERAL::LITERAL_EQUAL:
-        str = F("=");
-        break;
-    case LITERAL::LITERAL_LEFT_BRACKET:
-        str = F("(");
-        break;
-    case LITERAL::LITERAL_RIGHT_BRACKET:
-        str = F(")");
-        break;
-    case LITERAL::LITERAL_DOT:
-        str = F(".");
-        break;
-    case LITERAL::LITERAL_UNKNOWN:
-        str = F("?");
-        break;
-    }
-
-    return str;
-}
 
 
 //計算、アウトプットのタスク----------------------------------------------------------------

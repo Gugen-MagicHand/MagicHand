@@ -27,7 +27,16 @@ public:
         return true;
     }
 
-    
+    LITERAL& operator[] (int index)
+    {
+        /*
+        if (index < 0 || index >= count)
+        {
+        throw std::out_of_range("[List.oprator[]] IndexOutOfRange");
+        }
+        */
+        return array[(startPoint + index) % capacity];
+    }
 };
 
 
