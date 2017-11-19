@@ -30,6 +30,7 @@
 // --- Data structure -----------
 #include "Queue.h"
 #include "CanvasQueue.h"
+#include "LiteralQueue.h"
 
 #include "Stack.h"
 
@@ -42,12 +43,14 @@
 // End Pattern Recognition -----
 
 // --- StrokeAssembler-------
+#include "Literal.h"
 #include "StrokeAssembler.h"
 
 //End StrokeAssembler----------
 
 // --- Math -------
 #include "Fraction.h"
+#include "LiteralFraction.h"
 
 #include "Calculator.h"
 
