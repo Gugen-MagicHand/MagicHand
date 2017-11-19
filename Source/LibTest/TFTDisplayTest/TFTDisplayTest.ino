@@ -1,12 +1,13 @@
 #include <TFT.h>
 #include <SPI.h>
-#include "Calculator.h"
+#include "CalculatorDisplay.h"
 
-
+//13ピンがCRK, 11ピン(MOSI)がSDA、12ピン(MISO)は空ピン
 #define CS   10
 #define DC   9
 #define RST  8
 
+/*
 OperatorDivide operatorDivide;
 OperatorLeftBracket operatorLeftBracket;
 OperatorMinus operatorMinus;
@@ -16,93 +17,52 @@ OperatorRightBracket operatorRightBracket;
 
 Operator *outputOperator;
 Fraction outputFraction;
+*/
 
-TFT tft = TFT(CS, DC, RST);
-
-
-Calculator cal(20, 20);
-
-
-DeclareTaskLoop(Blinker);
-
-Calculator::CAL_STATUS pushResult;
+CalculatorDisplay tft(CS, DC, RST);
 
 
 void setup() {
-  pinMode(13, OUTPUT);
+	pinMode(13, OUTPUT);
 
-  Serial.begin(19200);
+	Serial.begin(19200);
 
-  tft.begin();
-  tft.setRotation(0);
-  tft.background(0,0,0);
-  tft.stroke(255,255,255);
+	tft.Begin();
 
-  InitMainLoopStackSize(200);
+	//InitMainLoopStackSize(200);
 
-  CreateTaskLoop(Blinker, LOW_PRIORITY);
+	tft.nextTopStringInAnswer = "3333";
+	tft.nextBottomStringInAnswer = "44444";
 
+	tft.DrawAnswer();
+
+	tft.nextCalculatorStatusString = "testtest";
+	tft.DrawCalculatorStatus();
+
+	/*
+	for (int i = 0; i < 30; i++) {
+		tft.FormulaLiteralQueuePush(i % 18);
+		tft.DrawFormula();
+		delay(100);
+		if (i % 2 == 0) {
+			LITERAL lit;
+			tft.FormulaLiteralQueuePopBack(&lit);
+		}
+	}
+	*/
+
+	for (int i = 0; i <= 12; i++) {
+		tft.nextCanvasQueueCount = i;
+		tft.DrawCanvasQueueCount();
+		tft.nextCanvasQueueCount = i - 4;
+		tft.DrawCanvasQueueCount();
+
+		delay(1000);
+	}
+
+	
 }
 
 void loop() {
-  
-  cal.Put(Fraction(1, 2));
-  pushResult = cal.TopOfOperandStack(&outputFraction);
-  if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
-  tft.print(outputFraction.ToString());
-  pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-  }
-  
-  cal.Put(&operatorPlus);
-  pushResult = cal.TopOfOperatorPointerStack(&outputOperator);
-  if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
-  tft.print(outputOperator->token);
-  Serial.println(outputOperator->token);
-  pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-  }
 
-  cal.Put(Fraction(1, 3));
-  pushResult = cal.TopOfOperandStack(&outputFraction);
-  if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
-  tft.print(outputFraction.ToString());
-  pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-  }
-  
-  cal.Put(&operatorMultiply);
-  pushResult = cal.TopOfOperatorPointerStack(&outputOperator);
-  if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
-  tft.print(outputOperator->token);
-  Serial.println(outputOperator->token);
-  pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-  }
-  
-  cal.Put(Fraction(5, 1));
-  pushResult = cal.TopOfOperandStack(&outputFraction);
-  if(pushResult == Calculator::CAL_STATUS::CAL_STATUS_SUCCESS){
-  tft.print(outputFraction.ToString());
-  pushResult = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-  }
-
-  cal.Compute();
-  tft.print("=");
-
-
-  Fraction resFrac;
-
-  cal.TopOfOperandStack(&resFrac);
-
-
-  tft.println(resFrac.ToString());
-
-
-
-  while (true);
-}
-
-TaskLoop(Blinker) {
-  digitalWrite(13, HIGH);
-  DelayWithBlocked(1000);
-
-  digitalWrite(13, LOW);
-  DelayWithBlocked(1000);
 }
