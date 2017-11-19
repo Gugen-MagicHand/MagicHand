@@ -7,15 +7,19 @@ static const unsigned long LITERAL_INTERVAL_TIME = 500;
 
 static const unsigned long SKETCH_INTERVAL_TIME = 10;
 
-//FingerTrackDriverの用意
+// FingerTrackDriverの用意
 FingerTrackDriver ftDriver;
 
-//FingerTrackSketcherの用意
+// FingerTrackSketcherの用意
 FingerTrackSketcher ftSketcher;
 
+// StrokeAssemblerの用意
 StrokeAssembler strokeAssembler;
 
-//CanvasQueueを用意
+// LiteralFractionの用意
+LiteralFraction literalFraction;
+
+// CanvasQueueを用意
 CanvasQueue canvasQueue(10, 15, 15);
 
 //Discriminator用canvas
@@ -149,6 +153,7 @@ void setup()
     literalQueue.Pop(&lit);
     Serial.println(lit);
     */
+
 }
 
 
@@ -156,6 +161,18 @@ void setup()
 void loop()
 {
 
+    //literalFraction.Put(LITERAL::LITERAL_0);
+    //literalFraction.Put(LITERAL::LITERAL_DOT);
+    //literalFraction.Put(LITERAL::LITERAL_0);
+    //literalFraction.Put(LITERAL::LITERAL_1);
+    //literalFraction.BackSpace();
+    //literalFraction.BackSpace();
+    //literalFraction.BackSpace();
+    //Serial.println(literalFraction.SignificandCount());
+    //literalFraction.Put(LITERAL::LITERAL_2);
+    //Serial.println(literalFraction.ToFraction().ToString());
+
+    //while (true);
 }
 
 //------------------------------------------------------------------------------------------

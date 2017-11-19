@@ -1,6 +1,12 @@
 #ifndef LITERAL_H
 #define LITERAL_H
 
+// 
+// NOTE:
+//  LITERAL_0 ~ LITERAL_9 ÇÕòAî‘Ç…Ç∑ÇÈÇ±Ç∆.
+//  LITERAL_0Ç™ç≈èâÇ…óàÇÈÇ±Ç∆Ç™ñ]Ç‹ÇµÇ¢.
+//
+
 enum LITERAL {
     LITERAL_0,
     LITERAL_1,
@@ -12,6 +18,7 @@ enum LITERAL {
     LITERAL_7,
     LITERAL_8,
     LITERAL_9,
+    LITERAL_DOT,
     LITERAL_PLUS,
     LITERAL_MINUS,
     LITERAL_MULTIPLY,
@@ -19,7 +26,6 @@ enum LITERAL {
     LITERAL_EQUAL,
     LITERAL_LEFT_BRACKET,
     LITERAL_RIGHT_BRACKET,
-    LITERAL_DOT,
     LITERAL_UNKNOWN
 };
 
