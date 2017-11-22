@@ -45,7 +45,10 @@ public:
             denom *= 10;
         }
 
-        return Fraction(numer, denom);
+        Fraction frac = Fraction(numer, denom);
+        frac.Reduce();
+
+        return frac;
     }
 
 
