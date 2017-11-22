@@ -49,7 +49,8 @@ public:
         this->pinDWN = pinDWN;
     }
 
-    void Begin(unsigned char pinBTN, unsigned char pinLFT, unsigned char pinRHT, unsigned char pinUP, unsigned char pinDWN, unsigned char pinWHT, unsigned char pinGRN, unsigned char pinRED, unsigned char pinBLU) {
+    void Begin(unsigned char pinBTN, unsigned char pinLFT, unsigned char pinRHT, unsigned char pinUP, unsigned char pinDWN,
+        unsigned char pinWHT, unsigned char pinGRN, unsigned char pinRED, unsigned char pinBLU) {
 
         pinMode(pinBTN, INPUT);
         pinMode(pinLFT, INPUT);
@@ -107,6 +108,9 @@ public:
         return down;
     }
 
+    bool GetButton() {
+        return digitalRead(pinBTN);
+    }
 
     void ReadLeft(void) {
         left = pulseIn(pinLFT, HIGH, timeout);

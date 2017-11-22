@@ -300,7 +300,15 @@ private:
 
             // 分母が1の時
             if (bottomStr == "") {
-                setTextSize(3);
+
+                if (topStr.length() < 6) {
+
+                    setTextSize(3);
+                }
+                else {
+
+                    setTextSize(2);
+                }
 
                 text(topStr.c_str(), 10, 55);
             }

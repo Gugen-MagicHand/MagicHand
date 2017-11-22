@@ -2,6 +2,22 @@
 // Main header
 #include "Lib/MagicHand.h"
 
+static const int PIN_TRACK_BALL_BUTTON = 13;
+static const int PIN_TRACK_BALL_LEFT = 12;
+static const int PIN_TRACK_BALL_RIGHT = 11;
+static const int PIN_TRACK_BALL_UP = 10;
+static const int PIN_TRACK_BALL_DOWN = 8;
+static const int PIN_TRACK_BALL_WHITE = 7;
+static const int PIN_TRACK_BALL_GREEN = 6;
+static const int PIN_TRACK_BALL_RED = 5;
+static const int PIN_TRACK_BALL_BLUE = 9;
+
+
+static const int PIN_TFT_RS = 40;
+static const int PIN_TFT_RST = 38;
+static const int PIN_TFT_CS = 36;
+
+
 static const unsigned long STROKE_INTERVAL_TIME = 200;
 static const unsigned long WORD_INTERVAL_TIME = 500;
 
@@ -23,7 +39,7 @@ StrokeAssembler strokeAssembler;
 LiteralFraction literalFraction;
 
 // CanvasQueueを用意
-CanvasQueue canvasQueue(10, 15, 15);
+CanvasQueue canvasQueue(6, 15, 15);
 
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
@@ -37,7 +53,7 @@ Queue<STROKE> strokeQueue(10);
 Calculator cal(10, 10);
 
 // CalculatorDisplayの用意
-CalculatorDisplay display(10, 9, 8);
+CalculatorDisplay display(PIN_TFT_CS, PIN_TFT_RS, PIN_TFT_RST);
 
 // --- タスク宣言 --------------------------------------------------
 
@@ -112,7 +128,8 @@ void setup()
     Serial.begin(19200);
 
     //FingerTrackDriverのピン設定、初期化
-    ftDriver.Begin(2, 3, 4, 5, 6);
+    ftDriver.Begin(PIN_TRACK_BALL_BUTTON, PIN_TRACK_BALL_LEFT, PIN_TRACK_BALL_RIGHT, PIN_TRACK_BALL_UP, PIN_TRACK_BALL_DOWN,
+        PIN_TRACK_BALL_WHITE, PIN_TRACK_BALL_GREEN, PIN_TRACK_BALL_RED, PIN_TRACK_BALL_BLUE);
 
     // ディスプレイの開始
     display.Begin();
@@ -532,12 +549,24 @@ TaskLoop(CaluculateAndOutputTask) {
                     // operatorを計算機に代入する.
                     calStatus = cal.Put(pointerToOperator);
 
+                    display.AssembledLiteralQueuePush(lit);
+
                     // Left bracketを計算機に代入する.
                     calStatus = cal.Put(&operatorLeftBracket);
 
                     // PHASE_CHILD_FOMULA_FIRST_INPUTに移行
                     phase = CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT;
                 }
+            }
+            else if (lit == LITERAL::LITERAL_EQUAL) {
+
+                display.FormulaLiteralQueuePush(lit);
+
+                calStatus = cal.Compute();
+
+
+
+                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT;
             }
             break;
             // End operator入力段階 ------------------------------
@@ -548,7 +577,7 @@ TaskLoop(CaluculateAndOutputTask) {
 
 
         // Serial.println(LiteralToString(lit));
-        Serial.println(phase);
+        //Serial.println(phase);
         // displayのfomulaLiteralQueueに代入
         //display.FormulaLiteralQueuePush(lit);
 
@@ -556,12 +585,15 @@ TaskLoop(CaluculateAndOutputTask) {
 
 
     // CanvasQueueのCountを取得
+    int canvasQueueCount;
     if (Acquire(canvasQueueSem, 1000)) {
 
-        display.canvasQueueCount = canvasQueue.Count();
+        canvasQueueCount = canvasQueue.Count();
 
         Release(canvasQueueSem);
     }
+
+    display.canvasQueueCount = canvasQueueCount;
 
     // 計算機のオペランドスタックの先頭をdisplayのanswer欄に表示する.
     calStatus = cal.TopOfOperandStack(&display.answerFraction);
@@ -575,6 +607,13 @@ TaskLoop(CaluculateAndOutputTask) {
 
     // Displayの更新
     display.Update();
+
+    if (canvasQueueCount > 0) {
+        ftDriver.LEDColor(true, true, false, false);
+    }
+    else {
+        ftDriver.LEDColor(false, true, true, false);
+    }
 }
 
 
