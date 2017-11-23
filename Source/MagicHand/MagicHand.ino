@@ -398,7 +398,7 @@ TaskLoop(CaluculateAndOutputTask) {
                 display.FormulaLiteralQueuePush(lit);
 
                 // Operator入力段階に移行する.
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT;
+                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT;
 
 
             }
@@ -549,7 +549,7 @@ TaskLoop(CaluculateAndOutputTask) {
                     // operatorを計算機に代入する.
                     calStatus = cal.Put(pointerToOperator);
 
-                    display.AssembledLiteralQueuePush(lit);
+                    display.FormulaLiteralQueuePush(lit);
 
                     // Left bracketを計算機に代入する.
                     calStatus = cal.Put(&operatorLeftBracket);

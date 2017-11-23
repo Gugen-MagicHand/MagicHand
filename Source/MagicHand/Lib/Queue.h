@@ -178,6 +178,11 @@ public:
         count = queue.count;
         startPoint = queue.startPoint;
     }
+
+    void Clear() {
+        startPoint = 0;
+        count = 0;
+    }
 };
 
 #endif // !_INCLUDE_QUEUE_H_
