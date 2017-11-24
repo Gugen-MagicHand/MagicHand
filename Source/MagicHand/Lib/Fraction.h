@@ -48,10 +48,10 @@ private:
 
     // 分母. denominator
     // 必ず正の数.
-    int denom = 1;
+    long denom = 1;
 
     // 分子. numerator
-    int numer = 0;
+    long numer = 0;
 
 
     template<typename TYPE>
@@ -76,7 +76,7 @@ public:
             fracInv.denom *= -1;
             fracInv.numer *= -1;
         }
-        int temp;
+        long temp;
 
         temp = fracInv.numer;
         fracInv.numer = fracInv.denom;
@@ -85,12 +85,12 @@ public:
         return fracInv;
     }
 
-    int Denom() { return denom; }
-    int Numer() { return numer; }
+    long Denom() { return denom; }
+    long Numer() { return numer; }
 
     double ToDouble() { return (double)numer / denom; }
 
-    void SetDenom(int denom) {
+    void SetDenom(long denom) {
 
         if (denom < 0) {
             // 分母が負の場合は, 分子が負の整数になるように,
@@ -102,9 +102,9 @@ public:
 
         this->denom = denom;
     }
-    void SetNumer(int numer) { this->numer = numer; }
+    void SetNumer(long numer) { this->numer = numer; }
 
-    void SetFraction(int numer, int denom) {
+    void SetFraction(long numer, long denom) {
 
         if (denom < 0) {
             // 分母が負の場合は, 分子が負の整数になるように,
@@ -122,11 +122,11 @@ public:
 
     }
 
-    Fraction(int numer, int denom) {
+    Fraction(long numer, long denom) {
         SetFraction(numer, denom);
     }
 
-    Fraction(int a) {
+    Fraction(long a) {
         SetFraction(a, 1);
     }
 
@@ -156,6 +156,12 @@ public:
         return *this;
     }
 
+    Fraction& operator=(long a) {
+        SetFraction(a, 1);
+
+        return *this;
+    }
+
     Fraction& operator=(Fraction&& frac) {
         SetFraction(frac.numer, frac.denom);
 
@@ -163,45 +169,63 @@ public:
     }
 
 
-    Fraction & operator()(int numer, int denom) {
+    Fraction & operator()(long numer, long denom) {
         SetFraction(numer, denom);
         return *this;
     }
 
 
     String ToString() {
+
         String output;
 
         if (denom == 0 && numer == 0) {
+
             // 分母と分子がともに0の場合はNaN
+
             output = "NaN";
+
         }
 
         else if (denom == 0 && numer > 0) {
+
             // 分母が0で分子が正の整数(0を含まない)の場合は+Inf
+
             output = "INF";
+
         }
+
 
         else if (denom == 0 && numer < 0) {
+
             // 分母が0で分子が負の整数(0を含まない)の場合は-Inf
+
             output = "-INF";
+
         }
 
+
         else if (numer == 0) {
+
             output = "0";
+
         }
 
         else if (denom == 1) {
+
             output = String(numer);
+
         }
 
         else {
-            output = String(numer) + "/" + String(denom);
-        }
-        
-        return output;
-    }
 
+            output = String(numer) + "/" + String(denom);
+
+        }
+
+        return output;
+
+    }
     /*
     friend std::ostream & operator<<(std::ostream &output, Fraction &frac) {
         if (frac.denom == 0 && frac.numer == 0) {
@@ -254,8 +278,22 @@ public:
         return fracC;
     }
 
+    friend Fraction operator+(long a, const Fraction &fracB) {
+        Fraction fracC = fracB;
+        fracC.Plus(a, fracC);
+
+        return fracC;
+    }
+
     // 分数 + 整数
     friend Fraction operator+(const Fraction &fracA, int b) {
+        Fraction fracC = fracA;
+        fracC.Plus(b, fracC);
+
+        return fracC;
+    }
+
+    friend Fraction operator+(const Fraction &fracA, long b) {
         Fraction fracC = fracA;
         fracC.Plus(b, fracC);
 
@@ -286,6 +324,13 @@ public:
         return fracC;
     }
 
+    friend Fraction operator-(const Fraction &fracA, long b) {
+        Fraction fracC = fracA;
+        fracC.Plus(-b, fracC);
+
+        return fracC;
+    }
+
     // 整数 - 分数
     friend Fraction operator-(int a, const Fraction &fracB) {
         Fraction fracC(a, 1);
@@ -294,6 +339,12 @@ public:
         return fracC;
     }
 
+    friend Fraction operator-(long a, const Fraction &fracB) {
+        Fraction fracC(a, 1);
+        fracC.Plus(-1 * fracB, fracC);
+
+        return fracC;
+    }
     // End 引き算 -------------------------------------
 
 
@@ -317,8 +368,22 @@ public:
         return fracC;
     }
 
+    friend Fraction operator*(long a, const Fraction &fracB) {
+        Fraction fracC = fracB;
+        fracC.Multiply(a, fracC);
+
+        return fracC;
+    }
+
     // 分数 x 整数
     friend Fraction operator*(const Fraction &fracA, int b) {
+        Fraction fracC = fracA;
+        fracC.Multiply(b, fracC);
+
+        return fracC;
+    }
+
+    friend Fraction operator*(const Fraction &fracA, long b) {
         Fraction fracC = fracA;
         fracC.Multiply(b, fracC);
 
@@ -348,8 +413,23 @@ public:
         return fracC;
     }
 
+    friend Fraction operator/(const Fraction &fracA, long b) {
+        Fraction fracC = fracA;
+        Fraction fracB(1, b);
+        fracC.Multiply(fracB, fracC);
+
+        return fracC;
+    }
+
     // 整数 / 分数
     friend Fraction operator/(int a, const Fraction &fracB) {
+        Fraction fracC(a, 1);
+        fracC.Multiply(Fraction::Inverse(fracB), fracC);
+
+        return fracC;
+    }
+
+    friend Fraction operator/(long a, const Fraction &fracB) {
         Fraction fracC(a, 1);
         fracC.Multiply(Fraction::Inverse(fracB), fracC);
 
@@ -368,6 +448,10 @@ public:
         Plus(a, *this);
         return *this;
     }
+    Fraction &operator+=(long a) {
+        Plus(a, *this);
+        return *this;
+    }
 
     Fraction &operator-=(const Fraction &frac) {
         Plus(-1 * frac, *this);
@@ -375,6 +459,10 @@ public:
     }
 
     Fraction &operator-=(int a) {
+        Plus(-a, *this);
+        return *this;
+    }
+    Fraction &operator-=(long a) {
         Plus(-a, *this);
         return *this;
     }
@@ -388,6 +476,10 @@ public:
         Multiply(a, *this);
         return *this;
     }
+    Fraction &operator*=(long a) {
+        Multiply(a, *this);
+        return *this;
+    }
 
     Fraction &operator/=(const Fraction &frac) {
         Multiply(Fraction::Inverse(frac), *this);
@@ -398,7 +490,10 @@ public:
         Multiply(Fraction(1, a), *this);
         return *this;
     }
-
+    Fraction &operator/=(long a) {
+        Multiply(Fraction(1, a), *this);
+        return *this;
+    }
 
 
 
@@ -418,11 +513,11 @@ public:
     //  最大公約数を求めるための数の一つ.
     //  0より大きい整数
     //
-    int CalculateGCD(int a, int b) {
+    long CalculateGCD(long a, long b) {
 
         // aが大きくなるようにする
         if (a < b) {
-            int temp = a;
+            long temp = a;
             a = b;
             b = temp;
         }
@@ -431,7 +526,7 @@ public:
         // ユークリッドの互除法
         for (;;) {
             // a と b の余りを求める.
-            int c = a % b;
+            long c = a % b;
 
             // 割り切れた場合
             if (c == 0) {
@@ -453,8 +548,8 @@ public:
     //
     // いづれの数も正の数である必要があります.
     //
-    int CalculateLCM(int a, int b) {
-        int gcd = CalculateGCD(a, b);
+    long CalculateLCM(long a, long b) {
+        long gcd = CalculateGCD(a, b);
         return a * b / gcd;
     }
 
@@ -467,7 +562,7 @@ public:
         }
 
         // 分子が負の数の場合があるので, 絶対値をとる.
-        int gcd = CalculateGCD(Abs(numer), denom);
+        long gcd = CalculateGCD(Abs(numer), denom);
 
         numer /= gcd;
         denom /= gcd;
@@ -491,7 +586,7 @@ public:
 
             fracC.denom = 0;
 
-            int numer = this->numer * fracB.numer;
+            long numer = this->numer * fracB.numer;
 
             if (numer == 0) {
                 // 二つの分子に0が含まれていた.
@@ -516,10 +611,10 @@ public:
         }
 
 
-        int lcm = CalculateLCM(this->denom, fracB.denom);
+        long lcm = CalculateLCM(this->denom, fracB.denom);
 
-        int fracANumer = this->numer * (lcm / this->denom);
-        int fracBNumer = fracB.numer * (lcm / fracB.denom);
+        long fracANumer = this->numer * (lcm / this->denom);
+        long fracBNumer = fracB.numer * (lcm / fracB.denom);
 
         fracC.denom = lcm;
         fracC.numer = fracANumer + fracBNumer;
@@ -535,6 +630,14 @@ public:
     //  fracC = fracA(this) + b
     //
     void Plus(int b, Fraction &fracC) {
+
+        fracC.denom = this->denom;
+        fracC.numer = this->numer + b * this->denom;
+
+        fracC.Reduce();
+    }
+
+    void Plus(long b, Fraction &fracC) {
 
         fracC.denom = this->denom;
         fracC.numer = this->numer + b * this->denom;
@@ -571,7 +674,13 @@ public:
 
         fracC.Reduce();
     }
+    void Multiply(long b, Fraction &fracC) {
 
+        fracC.denom = this->denom;
+        fracC.numer = this->numer * b;
+
+        fracC.Reduce();
+    }
 
 
 };

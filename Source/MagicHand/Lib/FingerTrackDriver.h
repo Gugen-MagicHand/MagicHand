@@ -18,8 +18,9 @@ class FingerTrackDriver : public TrackBallDriver
 private:
     const double SENSITIVITY = 1.0;
 
-    const int X_AXIS_DIR = -1;
+    const int X_AXIS_DIR = 1;
     const int Y_AXIS_DIR = -1;
+    const bool TRANS_X_Y_AXIS = true;
 
     /*
 
@@ -50,7 +51,7 @@ public:
     //セマフォ用に四方向を個別にdeltaX,deltaYに追加
     void AddLeftSumToDeltaX(void) {
         if (leftSum > 0) {
-            deltaX -=  SENSITIVITY * X_AXIS_DIR * leftSum;
+            (TRANS_X_Y_AXIS ? deltaY : deltaX) -=  SENSITIVITY * X_AXIS_DIR * leftSum;
             leftSum = 0;
         }
     }
@@ -58,7 +59,7 @@ public:
     void AddRightSumToDeltaX(void) {
         if (rightSum > 0) {
 
-            deltaX += SENSITIVITY * X_AXIS_DIR * rightSum;
+            (TRANS_X_Y_AXIS ? deltaY : deltaX) += SENSITIVITY * X_AXIS_DIR * rightSum;
             rightSum = 0;
         }
     }
@@ -66,7 +67,7 @@ public:
     void AddUpSumToDeltaY(void) {
         if (upSum > 0) {
 
-            deltaY += SENSITIVITY * Y_AXIS_DIR * upSum;
+            (TRANS_X_Y_AXIS ? deltaX : deltaY) += SENSITIVITY * Y_AXIS_DIR * upSum;
             upSum = 0;
         }
     }
@@ -74,7 +75,7 @@ public:
     void AddDownSumToDeltaY(void) {
         if (downSum > 0) {
 
-            deltaY -= SENSITIVITY * Y_AXIS_DIR * downSum;
+            (TRANS_X_Y_AXIS ? deltaX : deltaY) -= SENSITIVITY * Y_AXIS_DIR * downSum;
             downSum = 0;
         }
     }

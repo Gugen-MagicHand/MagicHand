@@ -54,7 +54,13 @@
 
 #include "Calculator.h"
 
+#include "CalculatorPhase.h"
+
 // End Math ------
+
+
+// Display
+#include "CalculatorDisplay.h"
 
 
 #endif

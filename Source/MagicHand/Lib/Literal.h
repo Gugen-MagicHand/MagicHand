@@ -2,6 +2,22 @@
 #define LITERAL_H
 
 // 
+// オペランド:
+//  オペレータによって演算されるもの.
+//  正の数字. -1などは, -のオペレータに正の数1のオペランドがついたもの.
+//
+//  例:
+//   0, 1, 1.0, 
+//
+// オペレータ:
+//  二つの数字が与えられたとき, その数字に対してある演算を行うもの.
+//  さらに, 左括弧, 右括弧などのオペレータ結合演算子も含む.
+//  広義に, 計算機に対して制御を行うものとする.
+//  =オペレータ含むかは, 現段階(2017/11/22)で保留にする.
+//
+//  例:
+//   +, -, /, *, (, )
+//
 // NOTE:
 //  LITERAL_0 ~ LITERAL_9 は連番にすること.
 //  LITERAL_0が最初に来ることが望ましい.
@@ -96,6 +112,10 @@ String LiteralToString(LITERAL literalToStr) {
     return str;
 }
 
+
+bool LiteralIsNumeric(LITERAL lit) {
+    return (lit >= LITERAL::LITERAL_0 && lit <= LITERAL::LITERAL_9);
+}
 
 
 #endif

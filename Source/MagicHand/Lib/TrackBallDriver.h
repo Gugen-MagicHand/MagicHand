@@ -8,21 +8,21 @@
 
 class TrackBallDriver
 {
-  public:
-    byte pinBTN;
-    byte pinLFT;
-    byte pinRHT;
-    byte pinUP;
-    byte pinDWN;
-    byte pinWHT;
-    byte pinGRN;
-    byte pinRED;
-    byte pinBLU;
+public:
+    unsigned char pinBTN;
+    unsigned char pinLFT;
+    unsigned char pinRHT;
+    unsigned char pinUP;
+    unsigned char pinDWN;
+    unsigned char pinWHT;
+    unsigned char pinGRN;
+    unsigned char pinRED;
+    unsigned char pinBLU;
 
-  private:
+private:
     bool ledMode = false;
 
-  protected:
+protected:
     long up;
     long down;
     long right;
@@ -33,37 +33,37 @@ class TrackBallDriver
 
 
 
-  public:
-    void Begin(byte pinBTN, byte pinLFT, byte pinRHT, byte pinUP, byte pinDWN) {
+public:
+    void Begin(unsigned char pinBTN, unsigned char pinLFT, unsigned char pinRHT, unsigned char pinUP, unsigned char pinDWN) {
 
-      pinMode(pinBTN, INPUT);
-      pinMode(pinLFT, INPUT);
-      pinMode(pinRHT, INPUT);
-      pinMode(pinUP, INPUT);
-      pinMode(pinDWN, INPUT);
+        pinMode(pinBTN, INPUT);
+        pinMode(pinLFT, INPUT);
+        pinMode(pinRHT, INPUT);
+        pinMode(pinUP, INPUT);
+        pinMode(pinDWN, INPUT);
 
-      this->pinBTN = pinBTN;
-      this->pinLFT = pinLFT;
-      this->pinRHT = pinRHT;
-      this->pinUP = pinUP;
-      this->pinDWN = pinDWN;
+        this->pinBTN = pinBTN;
+        this->pinLFT = pinLFT;
+        this->pinRHT = pinRHT;
+        this->pinUP = pinUP;
+        this->pinDWN = pinDWN;
     }
 
-    void Begin(byte pinBTN, byte pinLFT, byte pinRHT, byte pinUP, byte pinDWN, byte pinWHT, byte pinGRN, byte pinRED, byte pinBLU) {
+    void Begin(unsigned char pinBTN, unsigned char pinLFT, unsigned char pinRHT, unsigned char pinUP, unsigned char pinDWN,
+        unsigned char pinWHT, unsigned char pinGRN, unsigned char pinRED, unsigned char pinBLU) {
 
-      pinMode(pinBTN, INPUT);
-      pinMode(pinLFT, INPUT);
-      pinMode(pinRHT, INPUT);
-      pinMode(pinUP, INPUT);
-      pinMode(pinDWN, INPUT);
+        pinMode(pinBTN, INPUT);
+        pinMode(pinLFT, INPUT);
+        pinMode(pinRHT, INPUT);
+        pinMode(pinUP, INPUT);
+        pinMode(pinDWN, INPUT);
 
-      this->pinBTN = pinBTN;
-      this->pinLFT = pinLFT;
-      this->pinRHT = pinRHT;
-      this->pinUP = pinUP;
-      this->pinDWN = pinDWN;
+        this->pinBTN = pinBTN;
+        this->pinLFT = pinLFT;
+        this->pinRHT = pinRHT;
+        this->pinUP = pinUP;
+        this->pinDWN = pinDWN;
 
-      if (ledMode) {
         pinMode(pinWHT, OUTPUT);
         pinMode(pinGRN, OUTPUT);
         pinMode(pinRED, OUTPUT);
@@ -78,48 +78,54 @@ class TrackBallDriver
         this->pinGRN = pinGRN;
         this->pinRED = pinRED;
         this->pinBLU = pinBLU;
-      }
+
     }
 
-    void SetLEDMode(bool ledMode) {
-      this->ledMode = ledMode;
+    void LEDColor(bool r, bool g, bool b, bool w) {
+        digitalWrite(pinRED, r);
+        digitalWrite(pinGRN, g);
+        digitalWrite(pinBLU, b);
+        digitalWrite(pinWHT, w);
     }
 
     void SetTimeout(unsigned long timeout) {
-      this->timeout = timeout;
+        this->timeout = timeout;
     }
 
     long GetLeft(void) {
-      return left;
+        return left;
     }
 
     long GetRight(void) {
-      return right;
+        return right;
     }
 
     long GetUp(void) {
-      return up;
+        return up;
     }
 
     long GetDown(void) {
-      return down;
+        return down;
     }
 
+    bool GetButton() {
+        return digitalRead(pinBTN);
+    }
 
     void ReadLeft(void) {
-      left = pulseIn(pinLFT, HIGH, timeout);
+        left = pulseIn(pinLFT, HIGH, timeout);
     }
 
     void ReadRight(void) {
-      right = pulseIn(pinRHT, HIGH, timeout);
+        right = pulseIn(pinRHT, HIGH, timeout);
     }
 
     void ReadUp(void) {
-      up = pulseIn(pinUP, HIGH, timeout);
+        up = pulseIn(pinUP, HIGH, timeout);
     }
 
     void ReadDown(void) {
-      down = pulseIn(pinDWN, HIGH, timeout);
+        down = pulseIn(pinDWN, HIGH, timeout);
     }
 
 };
