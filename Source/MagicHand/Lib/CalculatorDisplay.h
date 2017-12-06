@@ -3,12 +3,14 @@
 
 
 #include <TFT.h>
-#include "LiteralQueue.h"
+//#include "LiteralQueue.h"
+#include "CharQueue.h"
 #include "Stroke.h"
 
 #include "Fraction.h"
 #include "Calculator.h"
-#include "CalculatorPhase.h"
+#include "CalculateController.h"
+//#include "CalculatorPhase.h"
 
 class CalculatorDisplay : public TFT
 {
@@ -22,7 +24,7 @@ public:
 
     Calculator::CAL_STATUS calStatus;
 
-    CALCULATOR_PHASE calPhase;
+    CalculateController::CALCULATE_PHASE calPhase;
 
     static const int DISPLAY_WIDTH = 160;
     static const int DISPLAY_HEIGHT = 128;
@@ -38,8 +40,8 @@ public:
     static const int ASSEMBLER_FIELD_WIDTH = DISPLAY_WIDTH - FORMULA_FIELD_WIDTH - 1;
     static const int ASSEMBLER_FIELD_HEIGHT = FORMULA_FIELD_HEIGHT;
 
-    static const int FORMULA_LITERAL_QUEUE_CAPACITY = 16;
-    static const int ASSEMBLED_LITERAL_QUEUE_CAPACITY = 3;
+    static const int FORMULA_CHAR_QUEUE_CAPACITY = 16;
+    static const int ASSEMBLED_CHAR_QUEUE_CAPACITY = 3;
 
     static const int CONSOLE_FIELD_POS_X = ASSEMBLER_FILED_POS_X;
     
@@ -53,11 +55,11 @@ private:
 
     Calculator::CAL_STATUS calStatusPrev;
 
-    CALCULATOR_PHASE calPhasePrev;
+    CalculateController::CALCULATE_PHASE calPhasePrev;
 
-    LiteralQueue assembledLiteralQueue;
+    CharQueue assembledCharQueue;
 
-    LiteralQueue formulaLiteralQueue;
+    CharQueue formulaCharQueue;
 
     bool isFormulaUpdated;
 
@@ -65,7 +67,7 @@ private:
 
 
 public:
-    CalculatorDisplay(uint8_t CS, uint8_t RS, uint8_t RST) : TFT(CS, RS, RST), assembledLiteralQueue(ASSEMBLED_LITERAL_QUEUE_CAPACITY), formulaLiteralQueue(FORMULA_LITERAL_QUEUE_CAPACITY)
+    CalculatorDisplay(uint8_t CS, uint8_t RS, uint8_t RST) : TFT(CS, RS, RST), assembledCharQueue(ASSEMBLED_CHAR_QUEUE_CAPACITY), formulaCharQueue(FORMULA_CHAR_QUEUE_CAPACITY)
     {};
 
 
@@ -93,7 +95,7 @@ public:
         isAssembledQueueUpdated = false;
 
         calStatusPrev = Calculator::CAL_STATUS::CAL_STATUS_SOMETHING_ERROR;
-        calPhasePrev = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT;
+        calPhasePrev = CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERAND_INPUT;
 
         answerFractionPrev.SetFraction(0, 0);
 
@@ -111,35 +113,35 @@ public:
 
 
 
-    void FormulaLiteralQueuePush(LITERAL literalToPush) {
-        while (!formulaLiteralQueue.Push(literalToPush))
+    void FormulaCharQueuePush(char charToPush) {
+        while (!formulaCharQueue.Push(charToPush))
         {
-            LITERAL lit;
-            formulaLiteralQueue.Pop(&lit);
+            char ch;
+            formulaCharQueue.Pop(&ch);
         }
 
         isFormulaUpdated = true;
     }
 
-    bool FormulaLiteralQueuePopBack(LITERAL *literalToPop) {
+    bool FormulaCharQueuePopBack(char *charToPop) {
         isFormulaUpdated = true;
 
-        return formulaLiteralQueue.PopBack(literalToPop);
+        return formulaCharQueue.PopBack(charToPop);
     }
 
 
-    void AssembledLiteralQueuePush(LITERAL literalToPush) {
-        while (!assembledLiteralQueue.Push(literalToPush))
+    void AssembledCharQueuePush(char charToPush) {
+        while (!assembledCharQueue.Push(charToPush))
         {
-            LITERAL lit;
-            assembledLiteralQueue.Pop(&lit);
+            char ch;
+            assembledCharQueue.Pop(&ch);
         }
 
         isAssembledQueueUpdated = true;
     }
 
-    bool AssembledLiteralQueuePopBack(LITERAL *literalToPop) {
-        return assembledLiteralQueue.PopBack(literalToPop);
+    bool AssembledCharQueuePopBack(char *charToPop) {
+        return assembledCharQueue.PopBack(charToPop);
         isAssembledQueueUpdated = true;
     }
 
@@ -206,11 +208,16 @@ private:
     void DrawFormula() {
         if (isFormulaUpdated) {
 
+            char str[2];
+            str[1] = 0;
+
             fillRect(1, 10, 99, 32, ST7735_BLACK);
-            for (int i = 0; i < formulaLiteralQueue.Count(); i++) {
-                LITERAL lit = formulaLiteralQueue[i];
-                text(LiteralToString(lit).c_str(), 1 + i * 6, 16);
+            for (int i = 0; i < formulaCharQueue.Count(); i++) {
+                str[0] = formulaCharQueue[i];
+                text(str, 1 + i * 6, 16);
             }
+
+
             isFormulaUpdated = false;
         }
     }
@@ -221,13 +228,15 @@ private:
 
             setTextSize(2);
 
+            char str[2];
+            str[1] = 0;
 
             fillRect(ASSEMBLER_FILED_POS_X, 21, ASSEMBLER_FIELD_WIDTH, 16, ST7735_BLACK);
 
 
-            for (int i = 0; i < assembledLiteralQueue.Count(); i++) {
-                LITERAL lit = assembledLiteralQueue[i];
-                text(LiteralToString(lit).c_str(), 103 + i * 20, 21);
+            for (int i = 0; i < assembledCharQueue.Count(); i++) {
+                str[0] = assembledCharQueue[i];
+                text(str, 103 + i * 20, 21);
             }
 
 
@@ -397,22 +406,22 @@ private:
             String phaseStr;
 
             switch (calPhase) {
-            case CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT:
+            case CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_CHILD_FOMULA_FIRST_INPUT:
                 phaseStr = String(F("CFIR_IN"));
                 stroke(0, 255, 0);
                 break;
 
-            case CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT:
+            case CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_FOMULA_FIRST_INPUT:
                 phaseStr = String(F("FIR_IN"));
                 stroke(0, 255, 0);
                 break;
 
-            case CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT:
+            case CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERAND_INPUT:
                 phaseStr = String(F("OPRND_IN"));
                 stroke(0, 255, 0);
                 break;
 
-            case CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT:
+            case CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERATOR_INPUT:
                 phaseStr = String(F("OPRTOR_IN"));
                 stroke(0, 255, 0);
                 break;

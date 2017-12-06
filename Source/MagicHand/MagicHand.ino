@@ -49,8 +49,10 @@ CanvasQueue canvasQueue(6, 15, 15);
 //StrokeQueueの用意
 Queue<STROKE> strokeQueue(10);
 
-//caluculatorの用意
-Calculator cal(10, 10);
+
+
+CalculateController calculateController(10, 10);
+
 
 // CalculatorDisplayの用意
 CalculatorDisplay display(PIN_TFT_CS, PIN_TFT_RS, PIN_TFT_RST);
@@ -90,13 +92,6 @@ SemaphoreHandle strokeQueueSem;
 
 // End セマフォ宣言 ------------------
 
-// オペレータ一覧
-OperatorDivide operatorDivide;
-OperatorLeftBracket operatorLeftBracket;
-OperatorMinus operatorMinus;
-OperatorMultiply operatorMultiply;
-OperatorPlus operatorPlus;
-OperatorRightBracket operatorRightBracket;
 
 /*
 
@@ -120,6 +115,15 @@ void Draw(Canvas &canvas)
 
 */
 
+void OnPopBackLiteralFromFormula() {
+    char ch;
+    display.FormulaCharQueuePopBack(&ch);
+}
+
+void OnPushLiteralIntoFormula(LITERAL lit) {
+    display.FormulaCharQueuePush(LiteralToChar(lit));
+}
+
 //セットアップ関数---------------------------------------------------------------------
 
 void setup()
@@ -134,8 +138,9 @@ void setup()
     // ディスプレイの開始
     display.Begin();
 
-    // 計算機のオペランドスタックに0を代入
-    cal.Put(Fraction(0));
+
+    calculateController.onPopBackLiteralFromFormula = OnPopBackLiteralFromFormula;
+    calculateController.onPushLiteralIntoFormula = OnPushLiteralIntoFormula;
 
 
     // --- Task 作成 --------------------------------------------------------------
@@ -242,41 +247,16 @@ String CalculatorStatusToString(Calculator::CAL_STATUS status) {
 }
 */
 
-Operator *LiteralToOperatorPointer(LITERAL lit) {
-    if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-        return &operatorLeftBracket;
-    }
-    else if (lit == LITERAL::LITERAL_RIGHT_BRACKET) {
-        return &operatorRightBracket;
-    }
-    else if (lit == LITERAL::LITERAL_MINUS) {
-        return &operatorMinus;
-    }
-    else if (lit == LITERAL::LITERAL_PLUS) {
-        return &operatorPlus;
-    }
-    else if (lit == LITERAL::LITERAL_MULTIPLY) {
-        return &operatorMultiply;
-    }
-    else if (lit == LITERAL::LITERAL_DIVIDE) {
-        return &operatorDivide;
-    }
 
-    return 0x00;
-}
 
 //計算、アウトプットのタスク----------------------------------------------------------------
+
+
 TaskLoop(CaluculateAndOutputTask) {
 
     
 
-    static CALCULATOR_PHASE phase = CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT;
-
-    static Operator *pointerToOperator;
-
     //Serial.println("C");
-
-    static Calculator::CAL_STATUS calStatus = Calculator::CAL_STATUS::CAL_STATUS_SUCCESS;
 
     STROKE stroke;
 
@@ -308,270 +288,11 @@ TaskLoop(CaluculateAndOutputTask) {
         // Literalごとの処理を行う
 
         // まず, 組み立て結果文字をDisplayに表示する.
-        display.AssembledLiteralQueuePush(lit);
-
-        switch (phase) {
-
-            // --- 式最初の入力待機段階 -----------------------------------------------------------------------
-        case CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT:
-
-
-            if (LiteralIsNumeric(lit)) {
-                // 数字が入力されたとき
-
-                // 計算機を初期化する.
-                cal.ClearAllStacks();
-
-                // 現在の文字分数に数字を書く
-                if (literalFraction.Put(lit)) {
-                    display.FormulaLiteralQueuePush(lit);
-                }
-
-                // Operand入力段階に移行する
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT;
-
-            }
-            else if (lit == LITERAL::LITERAL_MINUS ||
-                lit == LITERAL::LITERAL_PLUS ||
-                lit == LITERAL::LITERAL_DIVIDE ||
-                lit == LITERAL::LITERAL_MULTIPLY) {
-
-                // 作業中Operatorに代入する.
-                pointerToOperator = LiteralToOperatorPointer(lit);
-
-                // display表示
-                display.FormulaLiteralQueuePush(lit);
-
-                // Operator入力段階に移行する.
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT;
-
-
-            }
-            else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // 式先頭に左括弧が来たときは, 計算機に左括弧を代入し, PHASE_CHILD_FOMULA_FIRST_INPUTに移行する.
-
-                // 計算機のスタックを初期化する.
-                cal.ClearAllStacks();
-
-                // 左括弧を計算機に代入する
-                calStatus = cal.Put(&operatorLeftBracket);
-
-                // display表示
-                display.FormulaLiteralQueuePush(lit);
-
-                // PHASE_CHILD_FOMULA_FIRST_INPUTに移行する
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT;
-
-            }
-
-            break; // End 式最初の入力段階 ----------------------------
-
-            // --- 子式最初の入力段階 -----------------------------------------------------------------
-        case CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT:
-
-
-            if (LiteralIsNumeric(lit)) {
-                // 数字が入力されたときは, 文字分数に数字を代入してPHASE_OPERAND_INPUTに移行する.
-
-                // 現在の文字分数に数字を書く
-                if (literalFraction.Put(lit)) {
-
-
-                    display.FormulaLiteralQueuePush(lit);
-                }
-
-                // Operand入力段階に移行する
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT;
-
-            }
-            else if (lit == LITERAL::LITERAL_MINUS ||
-                lit == LITERAL::LITERAL_PLUS ||
-                lit == LITERAL::LITERAL_DIVIDE ||
-                lit == LITERAL::LITERAL_MULTIPLY) {
-
-                calStatus = cal.Put(Fraction(0));
-
-                // 作業中Operatorに代入する.
-                pointerToOperator = LiteralToOperatorPointer(lit);
-
-                // display表示
-                display.FormulaLiteralQueuePush(lit);
-
-                // Operator入力段階に移行する.
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT;
-
-
-            }
-            else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // 式先頭に左括弧が来たときは, 計算機に左括弧を代入し, PHASE_CHILD_FOMULA_FIRST_INPUTに移行する.
-
-
-                // 左括弧を計算機に代入する
-                calStatus = cal.Put(&operatorLeftBracket);
-
-                // display表示
-                display.FormulaLiteralQueuePush(lit);
-
-                // PHASE_CHILD_FOMULA_FIRST_INPUTに移行する
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT;
-
-            }
-
-
-
-
-            break; // End 子式最初の入力段階 --------------------------
-
-            // --- Operand入力段階 --------------------------------------------------------------------
-        case CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT:
-
-            if (LiteralIsNumeric(lit) || lit == LITERAL::LITERAL_DOT) {
-                // 数字, もしくは小数点が来た場合
-
-
-                // 文字分数に代入
-                if (literalFraction.Put(lit)) {
-
-
-
-                    display.FormulaLiteralQueuePush(lit);
-                }
-            }
-            else if (lit == LITERAL::LITERAL_DIVIDE ||
-                lit == LITERAL::LITERAL_MINUS ||
-                lit == LITERAL::LITERAL_PLUS ||
-                lit == LITERAL::LITERAL_MULTIPLY) {
-
-                // 四則演算子が来た場合, 現在の文字分数をoperandとして計算機に代入する.
-                // その後, PHASE_OPERATOR_INPUTに移行する.
-
-                // 現在のoperandを計算機に代入
-                calStatus = cal.Put(literalFraction.ToFraction());
-                literalFraction.Clear();
-
-
-                display.FormulaLiteralQueuePush(lit);
-
-                // 現在のoperatorとして記録
-                pointerToOperator = LiteralToOperatorPointer(lit);
-
-
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT;
-            }
-
-            else if (lit == LITERAL::LITERAL_RIGHT_BRACKET) {
-                // 右括弧が来た場合
-
-
-                // 現在のoperandを計算機に代入
-                calStatus = cal.Put(literalFraction.ToFraction());
-                literalFraction.Clear();
-
-                calStatus = cal.Put(lit);
-
-
-                display.FormulaLiteralQueuePush(lit);
-
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT;
-
-            }
-            else if (lit == LITERAL::LITERAL_EQUAL) {
-
-
-                // 現在のoperandを計算機に代入
-                calStatus = cal.Put(literalFraction.ToFraction());
-                literalFraction.Clear();
-
-                display.FormulaLiteralQueuePush(lit);
-
-                calStatus = cal.Compute();
-
-
-
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT;
-            }
-
-
-
-
-            break; // End Operand入力段階 --------------------------------
-
-
-
-
-            // --- Operator入力段階 ---------------------------------------------------------------------
-        case CALCULATOR_PHASE::CALCULATOR_PHASE_OPERATOR_INPUT:
-
-
-            if (lit == LITERAL::LITERAL_DIVIDE ||
-                lit == LITERAL::LITERAL_MINUS ||
-                lit == LITERAL::LITERAL_PLUS ||
-                lit == LITERAL::LITERAL_MULTIPLY) {
-
-                // 四則演算子が来た場合, 現在のoperatorとして記録する.
-
-                pointerToOperator = LiteralToOperatorPointer(lit);
-
-                // 前にあるoperatorを消去(一文字分)してから, 新しく描く
-                LITERAL temp;
-                display.FormulaLiteralQueuePopBack(&temp);
-                display.FormulaLiteralQueuePush(lit);
-            }
-
-            else if (LiteralIsNumeric(lit)) {
-                // 数字が来た場合は, 現在のOperatorを決定演算子として, 計算機に代入し,
-                // OperandPhaseに移行する.
-
-                if (pointerToOperator != 0x00) {
-
-                    // operatorを計算機に代入する.
-                    calStatus = cal.Put(pointerToOperator);
-
-                    // 数字を文字分数に代入する.
-                    if (literalFraction.Put(lit)) {
-
-
-
-                        display.FormulaLiteralQueuePush(lit);
-                    }
-
-                    // phaseをOperandPhaseに移動する.
-                    phase = CALCULATOR_PHASE::CALCULATOR_PHASE_OPERAND_INPUT;
-                }
-            }
-
-            else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // 左括弧が来た場合は, 現在のoperatorを決定演算子として,
-                // 計算機に代入する. その後, PHASE_CHILD_FOMULA_FIRST_INPUTに移行する.
-
-                if (pointerToOperator != 0x00) {
-
-                    // operatorを計算機に代入する.
-                    calStatus = cal.Put(pointerToOperator);
-
-                    display.FormulaLiteralQueuePush(lit);
-
-                    // Left bracketを計算機に代入する.
-                    calStatus = cal.Put(&operatorLeftBracket);
-
-                    // PHASE_CHILD_FOMULA_FIRST_INPUTに移行
-                    phase = CALCULATOR_PHASE::CALCULATOR_PHASE_CHILD_FOMULA_FIRST_INPUT;
-                }
-            }
-            else if (lit == LITERAL::LITERAL_EQUAL) {
-
-                display.FormulaLiteralQueuePush(lit);
-
-                calStatus = cal.Compute();
-
-
-
-                phase = CALCULATOR_PHASE::CALCULATOR_PHASE_FOMULA_FIRST_INPUT;
-            }
-            break;
-            // End operator入力段階 ------------------------------
-        }
-
+        display.AssembledCharQueuePush(LiteralToChar(lit));
+
+        
+        // DisplayのCalStatusを更新
+        display.calStatus = calculateController.Put(lit);
 
 
 
@@ -596,13 +317,11 @@ TaskLoop(CaluculateAndOutputTask) {
     display.canvasQueueCount = canvasQueueCount;
 
     // 計算機のオペランドスタックの先頭をdisplayのanswer欄に表示する.
-    calStatus = cal.TopOfOperandStack(&display.answerFraction);
+    calculateController.calculator.TopOfOperandStack(&display.answerFraction);
 
-    // DisplayのCalStatusを更新
-    display.calStatus = calStatus;
 
     // DisplayのcalPhaseを更新
-    display.calPhase = phase;
+    display.calPhase = calculateController.Phase();
 
 
     // Displayの更新
