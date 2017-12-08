@@ -22,7 +22,7 @@ public:
     };
 
 
-    // ƒIƒyƒŒ[ƒ^ˆê——
+    // ã‚ªãƒšãƒ¬ãƒ¼ã‚¿ä¸€è¦§
     OperatorDivide operatorDivide;
     OperatorLeftBracket operatorLeftBracket;
     OperatorMinus operatorMinus;
@@ -86,24 +86,24 @@ public:
 
         switch (phase) {
 
-            // --- ®Å‰‚Ì“ü—Í‘Ò‹@’iŠK -----------------------------------------------------------------------
+            // --- å¼æœ€åˆã®å…¥åŠ›å¾…æ©Ÿæ®µéš -----------------------------------------------------------------------
         case CALCULATE_PHASE_FOMULA_FIRST_INPUT:
 
 
             if (LiteralIsNumeric(lit)) {
-                // ”š‚ª“ü—Í‚³‚ê‚½‚Æ‚«
+                // æ•°å­—ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ã
 
                 onClearFormula();
 
-                // ŒvZ‹@‚ğ‰Šú‰»‚·‚é.
+                // è¨ˆç®—æ©Ÿã‚’åˆæœŸåŒ–ã™ã‚‹.
                 calculator.ClearAllStacks();
 
-                // Œ»İ‚Ì•¶š•ª”‚É”š‚ğ‘‚­
+                // ç¾åœ¨ã®æ–‡å­—åˆ†æ•°ã«æ•°å­—ã‚’æ›¸ã
                 if (literalFraction.Put(lit)) {
                     onPushLiteralIntoFormula(lit);
                 }
 
-                // Operand“ü—Í’iŠK‚ÉˆÚs‚·‚é
+                // Operandå…¥åŠ›æ®µéšã«ç§»è¡Œã™ã‚‹
                 phase = CALCULATE_PHASE_OPERAND_INPUT;
 
             }
@@ -114,53 +114,53 @@ public:
 
                 onClearFormula();
 
-                // ì‹Æ’†Operator‚É‘ã“ü‚·‚é.
+                // ä½œæ¥­ä¸­Operatorã«ä»£å…¥ã™ã‚‹.
                 pointerToOperator = LiteralToOperatorPointer(lit);
 
-                // display•\¦
+                // displayè¡¨ç¤º
                 onPushLiteralIntoFormula(lit);
 
-                // Operator“ü—Í’iŠK‚ÉˆÚs‚·‚é.
+                // Operatorå…¥åŠ›æ®µéšã«ç§»è¡Œã™ã‚‹.
                 phase = CALCULATE_PHASE_OPERATOR_INPUT;
 
 
             }
             else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // ®æ“ª‚É¶Š‡ŒÊ‚ª—ˆ‚½‚Æ‚«
+                // å¼å…ˆé ­ã«å·¦æ‹¬å¼§ãŒæ¥ãŸã¨ã
 
                 onClearFormula();
 
-                // ŒvZ‹@‚ÌƒXƒ^ƒbƒN‚ğ‰Šú‰»‚·‚é.
+                // è¨ˆç®—æ©Ÿã®ã‚¹ã‚¿ãƒƒã‚¯ã‚’åˆæœŸåŒ–ã™ã‚‹.
                 calculator.ClearAllStacks();
 
-                // ¶Š‡ŒÊ‚ğŒvZ‹@‚É‘ã“ü‚·‚é
+                // å·¦æ‹¬å¼§ã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹
                 calStatus = calculator.Put(&operatorLeftBracket);
 
-                // display•\¦
+                // displayè¡¨ç¤º
                 onPushLiteralIntoFormula(lit);
 
-                // PHASE_CHILD_FOMULA_FIRST_INPUT‚ÉˆÚs‚·‚é
+                // PHASE_CHILD_FOMULA_FIRST_INPUTã«ç§»è¡Œã™ã‚‹
                 phase = CALCULATE_PHASE_CHILD_FOMULA_FIRST_INPUT;
 
             }
 
-            break; // End ®Å‰‚Ì“ü—Í’iŠK ----------------------------
+            break; // End å¼æœ€åˆã®å…¥åŠ›æ®µéš ----------------------------
 
-                   // --- q®Å‰‚Ì“ü—Í’iŠK -----------------------------------------------------------------
+                   // --- å­å¼æœ€åˆã®å…¥åŠ›æ®µéš -----------------------------------------------------------------
         case CALCULATE_PHASE_CHILD_FOMULA_FIRST_INPUT:
 
 
             if (LiteralIsNumeric(lit)) {
-                // ”š‚ª“ü—Í‚³‚ê‚½‚Æ‚«‚Í, •¶š•ª”‚É”š‚ğ‘ã“ü‚µ‚ÄPHASE_OPERAND_INPUT‚ÉˆÚs‚·‚é.
+                // æ•°å­—ãŒå…¥åŠ›ã•ã‚ŒãŸã¨ãã¯, æ–‡å­—åˆ†æ•°ã«æ•°å­—ã‚’ä»£å…¥ã—ã¦PHASE_OPERAND_INPUTã«ç§»è¡Œã™ã‚‹.
 
-                // Œ»İ‚Ì•¶š•ª”‚É”š‚ğ‘‚­
+                // ç¾åœ¨ã®æ–‡å­—åˆ†æ•°ã«æ•°å­—ã‚’æ›¸ã
                 if (literalFraction.Put(lit)) {
 
                     onPushLiteralIntoFormula(lit);
 
                 }
 
-                // Operand“ü—Í’iŠK‚ÉˆÚs‚·‚é
+                // Operandå…¥åŠ›æ®µéšã«ç§»è¡Œã™ã‚‹
                 phase = CALCULATE_PHASE_OPERAND_INPUT;
 
             }
@@ -171,28 +171,28 @@ public:
 
                 calStatus = calculator.Put(Fraction(0));
 
-                // ì‹Æ’†Operator‚É‘ã“ü‚·‚é.
+                // ä½œæ¥­ä¸­Operatorã«ä»£å…¥ã™ã‚‹.
                 pointerToOperator = LiteralToOperatorPointer(lit);
 
-                // display•\¦
+                // displayè¡¨ç¤º
                 onPushLiteralIntoFormula(lit);
 
-                // Operator“ü—Í’iŠK‚ÉˆÚs‚·‚é.
+                // Operatorå…¥åŠ›æ®µéšã«ç§»è¡Œã™ã‚‹.
                 phase = CALCULATE_PHASE_OPERATOR_INPUT;
 
 
             }
             else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // ®æ“ª‚É¶Š‡ŒÊ‚ª—ˆ‚½‚Æ‚«‚Í, ŒvZ‹@‚É¶Š‡ŒÊ‚ğ‘ã“ü‚µ, PHASE_CHILD_FOMULA_FIRST_INPUT‚ÉˆÚs‚·‚é.
+                // å¼å…ˆé ­ã«å·¦æ‹¬å¼§ãŒæ¥ãŸã¨ãã¯, è¨ˆç®—æ©Ÿã«å·¦æ‹¬å¼§ã‚’ä»£å…¥ã—, PHASE_CHILD_FOMULA_FIRST_INPUTã«ç§»è¡Œã™ã‚‹.
 
 
-                // ¶Š‡ŒÊ‚ğŒvZ‹@‚É‘ã“ü‚·‚é
+                // å·¦æ‹¬å¼§ã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹
                 calStatus = calculator.Put(&operatorLeftBracket);
 
-                // display•\¦
+                // displayè¡¨ç¤º
                 onPushLiteralIntoFormula(lit);
 
-                // PHASE_CHILD_FOMULA_FIRST_INPUT‚ÉˆÚs‚·‚é
+                // PHASE_CHILD_FOMULA_FIRST_INPUTã«ç§»è¡Œã™ã‚‹
                 phase = CALCULATE_PHASE_CHILD_FOMULA_FIRST_INPUT;
 
             }
@@ -200,16 +200,16 @@ public:
 
 
 
-            break; // End q®Å‰‚Ì“ü—Í’iŠK --------------------------
+            break; // End å­å¼æœ€åˆã®å…¥åŠ›æ®µéš --------------------------
 
-                   // --- Operand“ü—Í’iŠK --------------------------------------------------------------------
+                   // --- Operandå…¥åŠ›æ®µéš --------------------------------------------------------------------
         case CALCULATE_PHASE_OPERAND_INPUT:
 
             if (LiteralIsNumeric(lit) || lit == LITERAL::LITERAL_DOT) {
-                // ”š, ‚à‚µ‚­‚Í¬”“_‚ª—ˆ‚½ê‡
+                // æ•°å­—, ã‚‚ã—ãã¯å°æ•°ç‚¹ãŒæ¥ãŸå ´åˆ
 
 
-                // •¶š•ª”‚É‘ã“ü
+                // æ–‡å­—åˆ†æ•°ã«ä»£å…¥
                 if (literalFraction.Put(lit)) {
 
 
@@ -221,16 +221,16 @@ public:
                 lit == LITERAL::LITERAL_PLUS ||
                 lit == LITERAL::LITERAL_MULTIPLY) {
 
-                // l‘¥‰‰Zq‚ª—ˆ‚½ê‡, Œ»İ‚Ì•¶š•ª”‚ğoperand‚Æ‚µ‚ÄŒvZ‹@‚É‘ã“ü‚·‚é.
-                // ‚»‚ÌŒã, PHASE_OPERATOR_INPUT‚ÉˆÚs‚·‚é.
+                // å››å‰‡æ¼”ç®—å­ãŒæ¥ãŸå ´åˆ, ç¾åœ¨ã®æ–‡å­—åˆ†æ•°ã‚’operandã¨ã—ã¦è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹.
+                // ãã®å¾Œ, PHASE_OPERATOR_INPUTã«ç§»è¡Œã™ã‚‹.
 
-                // Œ»İ‚Ìoperand‚ğŒvZ‹@‚É‘ã“ü
+                // ç¾åœ¨ã®operandã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥
                 calStatus = calculator.Put(literalFraction.ToFraction());
                 literalFraction.Clear();
 
                 onPushLiteralIntoFormula(lit);
 
-                // Œ»İ‚Ìoperator‚Æ‚µ‚Ä‹L˜^
+                // ç¾åœ¨ã®operatorã¨ã—ã¦è¨˜éŒ²
                 pointerToOperator = LiteralToOperatorPointer(lit);
 
 
@@ -238,10 +238,10 @@ public:
             }
 
             else if (lit == LITERAL::LITERAL_RIGHT_BRACKET) {
-                // ‰EŠ‡ŒÊ‚ª—ˆ‚½ê‡
+                // å³æ‹¬å¼§ãŒæ¥ãŸå ´åˆ
 
 
-                // Œ»İ‚Ìoperand‚ğŒvZ‹@‚É‘ã“ü
+                // ç¾åœ¨ã®operandã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥
                 calStatus = calculator.Put(literalFraction.ToFraction());
                 literalFraction.Clear();
 
@@ -256,7 +256,7 @@ public:
             else if (lit == LITERAL::LITERAL_EQUAL) {
 
 
-                // Œ»İ‚Ìoperand‚ğŒvZ‹@‚É‘ã“ü
+                // ç¾åœ¨ã®operandã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥
                 calStatus = calculator.Put(literalFraction.ToFraction());
                 literalFraction.Clear();
 
@@ -272,12 +272,12 @@ public:
 
 
 
-            break; // End Operand“ü—Í’iŠK --------------------------------
+            break; // End Operandå…¥åŠ›æ®µéš --------------------------------
 
 
 
 
-                   // --- Operator“ü—Í’iŠK ---------------------------------------------------------------------
+                   // --- Operatorå…¥åŠ›æ®µéš ---------------------------------------------------------------------
         case CALCULATE_PHASE_OPERATOR_INPUT:
 
 
@@ -286,11 +286,11 @@ public:
                 lit == LITERAL::LITERAL_PLUS ||
                 lit == LITERAL::LITERAL_MULTIPLY) {
 
-                // l‘¥‰‰Zq‚ª—ˆ‚½ê‡, Œ»İ‚Ìoperator‚Æ‚µ‚Ä‹L˜^‚·‚é.
+                // å››å‰‡æ¼”ç®—å­ãŒæ¥ãŸå ´åˆ, ç¾åœ¨ã®operatorã¨ã—ã¦è¨˜éŒ²ã™ã‚‹.
 
                 pointerToOperator = LiteralToOperatorPointer(lit);
 
-                // ‘O‚É‚ ‚éoperator‚ğÁ‹(ˆê•¶š•ª)‚µ‚Ä‚©‚ç, V‚µ‚­•`‚­
+                // å‰ã«ã‚ã‚‹operatorã‚’æ¶ˆå»(ä¸€æ–‡å­—åˆ†)ã—ã¦ã‹ã‚‰, æ–°ã—ãæã
 
                 onPopBackLiteralFromFormula();
                 onPushLiteralIntoFormula(lit);
@@ -298,15 +298,15 @@ public:
             }
 
             else if (LiteralIsNumeric(lit)) {
-                // ”š‚ª—ˆ‚½ê‡‚Í, Œ»İ‚ÌOperator‚ğŒˆ’è‰‰Zq‚Æ‚µ‚Ä, ŒvZ‹@‚É‘ã“ü‚µ,
-                // OperandPhase‚ÉˆÚs‚·‚é.
+                // æ•°å­—ãŒæ¥ãŸå ´åˆã¯, ç¾åœ¨ã®Operatorã‚’æ±ºå®šæ¼”ç®—å­ã¨ã—ã¦, è¨ˆç®—æ©Ÿã«ä»£å…¥ã—,
+                // OperandPhaseã«ç§»è¡Œã™ã‚‹.
 
                 if (pointerToOperator != 0x00) {
 
-                    // operator‚ğŒvZ‹@‚É‘ã“ü‚·‚é.
+                    // operatorã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹.
                     calStatus = calculator.Put(pointerToOperator);
 
-                    // ”š‚ğ•¶š•ª”‚É‘ã“ü‚·‚é.
+                    // æ•°å­—ã‚’æ–‡å­—åˆ†æ•°ã«ä»£å…¥ã™ã‚‹.
                     if (literalFraction.Put(lit)) {
 
 
@@ -314,26 +314,26 @@ public:
 
                     }
 
-                    // phase‚ğOperandPhase‚ÉˆÚ“®‚·‚é.
+                    // phaseã‚’OperandPhaseã«ç§»å‹•ã™ã‚‹.
                     phase = CALCULATE_PHASE_OPERAND_INPUT;
                 }
             }
 
             else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // ¶Š‡ŒÊ‚ª—ˆ‚½ê‡‚Í, Œ»İ‚Ìoperator‚ğŒˆ’è‰‰Zq‚Æ‚µ‚Ä,
-                // ŒvZ‹@‚É‘ã“ü‚·‚é. ‚»‚ÌŒã, PHASE_CHILD_FOMULA_FIRST_INPUT‚ÉˆÚs‚·‚é.
+                // å·¦æ‹¬å¼§ãŒæ¥ãŸå ´åˆã¯, ç¾åœ¨ã®operatorã‚’æ±ºå®šæ¼”ç®—å­ã¨ã—ã¦,
+                // è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹. ãã®å¾Œ, PHASE_CHILD_FOMULA_FIRST_INPUTã«ç§»è¡Œã™ã‚‹.
 
                 if (pointerToOperator != 0x00) {
 
-                    // operator‚ğŒvZ‹@‚É‘ã“ü‚·‚é.
+                    // operatorã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹.
                     calStatus = calculator.Put(pointerToOperator);
 
                     onPushLiteralIntoFormula(lit);
 
-                    // Left bracket‚ğŒvZ‹@‚É‘ã“ü‚·‚é.
+                    // Left bracketã‚’è¨ˆç®—æ©Ÿã«ä»£å…¥ã™ã‚‹.
                     calStatus = calculator.Put(&operatorLeftBracket);
 
-                    // PHASE_CHILD_FOMULA_FIRST_INPUT‚ÉˆÚs
+                    // PHASE_CHILD_FOMULA_FIRST_INPUTã«ç§»è¡Œ
                     phase = CALCULATE_PHASE_CHILD_FOMULA_FIRST_INPUT;
                 }
             }
@@ -348,7 +348,7 @@ public:
                 phase = CALCULATE_PHASE_FOMULA_FIRST_INPUT;
             }
             break;
-            // End operator“ü—Í’iŠK ------------------------------
+            // End operatorå…¥åŠ›æ®µéš ------------------------------
         }
 
         return calStatus;
