@@ -124,7 +124,7 @@ public:
 
 
 
-            if ((fromSizeX <= 2) && (fromSizeY <= 2)) {
+            if ((fromSizeX <= 3) && (fromSizeY <= 3) && (fromSizeX >= 1) && (fromSizeY >= 1)) {
                 toCanvas->Dot(0, 0);
             }
 

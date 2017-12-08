@@ -44,7 +44,7 @@ public:
     static const int ASSEMBLED_CHAR_QUEUE_CAPACITY = 3;
 
     static const int CONSOLE_FIELD_POS_X = ASSEMBLER_FILED_POS_X;
-    
+
 
 
 private:
@@ -129,6 +129,10 @@ public:
         return formulaCharQueue.PopBack(charToPop);
     }
 
+    void FormulaCharQueueClear() {
+        formulaCharQueue.Clear();
+    }
+
 
     void AssembledCharQueuePush(char charToPush) {
         while (!assembledCharQueue.Push(charToPush))
@@ -211,7 +215,9 @@ private:
             char str[2];
             str[1] = 0;
 
-            fillRect(1, 10, 99, 32, ST7735_BLACK);
+
+
+            fillRect(1, 16, 99, 8, ST7735_BLACK);
             for (int i = 0; i < formulaCharQueue.Count(); i++) {
                 str[0] = formulaCharQueue[i];
                 text(str, 1 + i * 6, 16);
@@ -249,6 +255,10 @@ private:
 
     void DrawDisplayMode() {
         if (isFractionPrev != isFraction) {
+
+            fillRect(104, 54, ASSEMBLER_FIELD_WIDTH, 8, ST7735_BLACK);
+
+
             if (isFraction) {
                 text(String(F("Fraction")).c_str(), 104, 54);
             }
@@ -264,7 +274,9 @@ private:
 
     void DrawAnswer() {
 
-        if ((answerFraction.Denom() != answerFractionPrev.Denom()) || answerFraction.Numer() != answerFractionPrev.Numer()) {
+        if ((isFraction != isFractionPrev) 
+            || (answerFraction.Denom() != answerFractionPrev.Denom()) 
+            || answerFraction.Numer() != answerFractionPrev.Numer()) {
 
             //answer画面の初期化
             fillRect(0, 50, 99, 79, ST7735_BLACK);
@@ -300,8 +312,13 @@ private:
 
             else {
 
-                topStr = String(answerFraction.Numer());
-                bottomStr = String(answerFraction.Denom());
+                if (isFraction) {
+                    topStr = String(answerFraction.Numer());
+                    bottomStr = String(answerFraction.Denom());
+                }
+                else {
+                    topStr = String(answerFraction.ToDouble());
+                }
             }
 
 

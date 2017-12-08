@@ -35,15 +35,16 @@ public:
     Calculator calculator;
 
     Operator *pointerToOperator;
-
+    LiteralFraction literalFraction;
 
     void(*onPushLiteralIntoFormula)(LITERAL lit);
     void(*onPopBackLiteralFromFormula)();
+    void(*onClearFormula)();
 
 
 private:
     CALCULATE_PHASE phase = CALCULATE_PHASE::CALCULATE_PHASE_FOMULA_FIRST_INPUT;
-    LiteralFraction literalFraction;
+
 
 
 public:
@@ -51,7 +52,9 @@ public:
     CALCULATE_PHASE Phase() { return phase; }
 
     CalculateController(int operandStackSize, int operatorPointerStackSize) : calculator(operandStackSize, operatorPointerStackSize) {
-
+        onClearFormula = OnClearFormulaDefault;
+        onPopBackLiteralFromFormula = OnPopBackLiteralFromFormulaDefault;
+        onPushLiteralIntoFormula = OnPushLiteralIntoFormulaDefault;
     }
 
 
@@ -90,6 +93,8 @@ public:
             if (LiteralIsNumeric(lit)) {
                 // 数字が入力されたとき
 
+                onClearFormula();
+
                 // 計算機を初期化する.
                 calculator.ClearAllStacks();
 
@@ -107,6 +112,8 @@ public:
                 lit == LITERAL::LITERAL_DIVIDE ||
                 lit == LITERAL::LITERAL_MULTIPLY) {
 
+                onClearFormula();
+
                 // 作業中Operatorに代入する.
                 pointerToOperator = LiteralToOperatorPointer(lit);
 
@@ -119,7 +126,9 @@ public:
 
             }
             else if (lit == LITERAL::LITERAL_LEFT_BRACKET) {
-                // 式先頭に左括弧が来たときは, 計算機に左括弧を代入し, PHASE_CHILD_FOMULA_FIRST_INPUTに移行する.
+                // 式先頭に左括弧が来たとき
+
+                onClearFormula();
 
                 // 計算機のスタックを初期化する.
                 calculator.ClearAllStacks();
@@ -346,6 +355,21 @@ public:
     }
 
 
+private:
+
+    static void OnPushLiteralIntoFormulaDefault(LITERAL lit) {
+
+    }
+
+
+    static void OnPopBackLiteralFromFormulaDefault() {
+
+    }
+
+
+    static void OnClearFormulaDefault() {
+
+    }
 };
 
 

@@ -23,7 +23,12 @@ static const unsigned long WORD_INTERVAL_TIME = 500;
 
 static const unsigned long SKETCH_INTERVAL_TIME = 10;
 
+static const int CLICK_EVENT_QUEUE_CAPACITY = 3;
+static const int CANVAS_QUEUE_CAPACITY = 6;
+static const int STROKE_QUEUE_CAPACITY = 10;
 
+static const int DOUBLE_CLICK_LISTEN_TIME = 300;
+static const int LONG_PRESS_CONTINUOUS_TIME = 800;
 
 
 // FingerTrackDriverの用意
@@ -35,11 +40,8 @@ FingerTrackSketcher ftSketcher;
 // StrokeAssemblerの用意
 StrokeAssembler strokeAssembler;
 
-// LiteralFractionの用意
-LiteralFraction literalFraction;
-
 // CanvasQueueを用意
-CanvasQueue canvasQueue(6, 15, 15);
+CanvasQueue canvasQueue(CANVAS_QUEUE_CAPACITY, 15, 15);
 
 //Discriminator用canvas
 //Canvas targetCanvas(8, 8);
@@ -47,15 +49,17 @@ CanvasQueue canvasQueue(6, 15, 15);
 //Canvas testCanvas(16, 16);
 
 //StrokeQueueの用意
-Queue<STROKE> strokeQueue(10);
+Queue<STROKE> strokeQueue(STROKE_QUEUE_CAPACITY);
 
-
+Queue<CLICK_EVENT> clickEventQueue(CLICK_EVENT_QUEUE_CAPACITY);
 
 CalculateController calculateController(10, 10);
 
 
 // CalculatorDisplayの用意
 CalculatorDisplay display(PIN_TFT_CS, PIN_TFT_RS, PIN_TFT_RST);
+
+
 
 // --- タスク宣言 --------------------------------------------------
 
@@ -74,6 +78,9 @@ DeclareTaskLoop(DiscriminatorTask);
 //計算、アウトプットのタスク
 DeclareTaskLoop(CaluculateAndOutputTask);
 
+// クリックイベントを検知するタスク
+DeclareTaskLoop(ClickEventListenerTask);
+
 // End
 
 // --- セマフォ宣言 -------------------------------------------------------
@@ -90,10 +97,13 @@ SemaphoreHandle canvasQueueSem;
 //ストロークキューのセマフォ
 SemaphoreHandle strokeQueueSem;
 
+// ClickEventQueueのセマフォ
+SemaphoreHandle clickEventQueueSem;
+
 // End セマフォ宣言 ------------------
 
 
-/*
+
 
 // キャンバスの内容をシリアルモニタに描画
 void Draw(Canvas &canvas)
@@ -113,7 +123,7 @@ void Draw(Canvas &canvas)
     }
 }
 
-*/
+
 
 void OnPopBackLiteralFromFormula() {
     char ch;
@@ -122,6 +132,10 @@ void OnPopBackLiteralFromFormula() {
 
 void OnPushLiteralIntoFormula(LITERAL lit) {
     display.FormulaCharQueuePush(LiteralToChar(lit));
+}
+
+void OnClearFormula() {
+    display.FormulaCharQueueClear();
 }
 
 //セットアップ関数---------------------------------------------------------------------
@@ -141,6 +155,7 @@ void setup()
 
     calculateController.onPopBackLiteralFromFormula = OnPopBackLiteralFromFormula;
     calculateController.onPushLiteralIntoFormula = OnPushLiteralIntoFormula;
+    calculateController.onClearFormula = OnClearFormula;
 
 
     // --- Task 作成 --------------------------------------------------------------
@@ -160,6 +175,9 @@ void setup()
     //計算、アウトプットのタスク
     CreateTaskLoopWithStackSize(CaluculateAndOutputTask, LOW_PRIORITY, 200);
 
+    // クリックイベントを検知するタスク
+    CreateTaskLoop(ClickEventListenerTask, LOW_PRIORITY);
+
     // --- セマフォ作成 -----------------------------------------------------------
 
     //トラックボールのセマフォ
@@ -174,6 +192,8 @@ void setup()
     //ストロークキューのセマフォ
     CreateBinarySemaphore(strokeQueueSem);
 
+    // クリックイベントキューに関するセマフォ
+    CreateBinarySemaphore(clickEventQueueSem);
     //InitMainLoopStackSize(200);
 
 
@@ -303,6 +323,58 @@ TaskLoop(CaluculateAndOutputTask) {
         //display.FormulaLiteralQueuePush(lit);
 
     }
+
+
+    // --- Click event の処理 ------------------
+
+    CLICK_EVENT clickEvent;
+    bool isClickEventReceived = false;
+    if (Acquire(clickEventQueueSem, 1000)) {
+
+        if (clickEventQueue.Pop(&clickEvent)) {
+            isClickEventReceived = true;
+        }
+
+       
+        Release(clickEventQueueSem);
+    }
+    
+    if (isClickEventReceived) {
+        switch (clickEvent) {
+        case CLICK_EVENT::SINGLE_CLICK:
+
+            if (calculateController.Phase() == CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERAND_INPUT) {
+                if (calculateController.literalFraction.BackSpace()) {
+                    char temp;
+                    display.FormulaCharQueuePopBack(&temp);
+
+                }
+            }
+
+            break;
+
+        case CLICK_EVENT::LONG_PRESS:
+            if (calculateController.Phase() == CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERAND_INPUT) {
+                
+                while (calculateController.literalFraction.BackSpace()) {
+                    char temp;
+                    display.FormulaCharQueuePopBack(&temp);
+
+                }
+            }
+
+            break;
+
+        case CLICK_EVENT::DOUBLE_CLICK:
+            display.isFraction ^= true;
+
+            break;
+        }
+    }
+
+
+
+
 
 
     // CanvasQueueのCountを取得
@@ -565,4 +637,128 @@ TaskLoop(TrackBallDownRotationTask)
         ftDriver.AddDownToSum();
         Release(trackBallDownRotationSem);
     }
+}
+
+
+
+// --- クリックイベント検知タスク --------------------------------------------------
+
+TaskLoop(ClickEventListenerTask) {
+    static bool prevIsShortClick = false;
+
+    static unsigned long clickStartTime;
+    static unsigned long clickEndTime;
+
+    static bool isPressedPrev = false;
+    static bool isAlreadyLongPressDetected = false;
+    
+    bool isPressed = ftDriver.GetButton();
+
+
+    if (isPressed != isPressedPrev) {
+        if (isPressed) {
+            // ButtonDown
+
+
+            //Serial.println("D");
+            isAlreadyLongPressDetected = false;
+
+            clickStartTime = millis();
+
+
+        }
+        else {
+            // ButtonUp
+
+
+            clickEndTime = millis();
+
+            if (millis() - clickStartTime < LONG_PRESS_CONTINUOUS_TIME) {
+                // 短いクリックの場合
+
+                if (prevIsShortClick) {
+                    // 前回も短いクリックの場合
+                    // ダブルクリックと判断
+
+
+                    if (Acquire(clickEventQueueSem, 1000)) {
+                        CLICK_EVENT temp;
+                        while (!clickEventQueue.Push(CLICK_EVENT::DOUBLE_CLICK)) {
+
+                            clickEventQueue.Pop(&temp);
+                        }
+
+                        Release(clickEventQueueSem);
+                    }
+
+                    //Serial.println("DC");
+
+                    // ダブルクリックと判断済みなので,
+                    // フラグは下ろす.
+                    prevIsShortClick = false;
+
+                }
+                else {
+
+                    // この段階で, single clickと判断できないので,　
+                    // フラグだけ立てて, 処理を終える.
+                    // single clickの判断は, クリックの終わり時間が指定した時間を超えたときに行う.
+                    
+                    prevIsShortClick = true;
+
+                }
+
+
+
+            }
+
+            //Serial.println("U");
+
+        }
+    }
+
+
+    if (isPressed) {
+
+        if (!isAlreadyLongPressDetected && millis() - clickStartTime >= LONG_PRESS_CONTINUOUS_TIME) {
+            // 一定時間以上押され続けている場合
+            // 長押しと判断
+
+            if (Acquire(clickEventQueueSem, 1000)) {
+                CLICK_EVENT temp;
+                while (!clickEventQueue.Push(CLICK_EVENT::LONG_PRESS)) {
+
+                    clickEventQueue.Pop(&temp);
+                }
+
+                Release(clickEventQueueSem);
+            }
+            //Serial.println("LP");
+
+            isAlreadyLongPressDetected = true;
+
+        }
+    }
+
+
+    if (prevIsShortClick && millis() - clickEndTime > DOUBLE_CLICK_LISTEN_TIME) {
+
+
+        //Serial.println("SC");
+        if (Acquire(clickEventQueueSem, 1000)) {
+            CLICK_EVENT temp;
+            while (!clickEventQueue.Push(CLICK_EVENT::SINGLE_CLICK)) {
+
+                clickEventQueue.Pop(&temp);
+            }
+
+            Release(clickEventQueueSem);
+        }
+
+        prevIsShortClick = false;
+
+
+    }
+
+    isPressedPrev = isPressed;
 }

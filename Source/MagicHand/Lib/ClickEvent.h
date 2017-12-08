@@ -1,0 +1,10 @@
+#ifndef CLICK_EVENT_H
+#define CLICK_EVENT_H
+
+enum CLICK_EVENT {
+    SINGLE_CLICK,
+    DOUBLE_CLICK,
+    LONG_PRESS
+};
+
+#endif
