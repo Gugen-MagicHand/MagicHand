@@ -30,8 +30,9 @@
 // --- Data structure -----------
 #include "Queue.h"
 #include "CanvasQueue.h"
-#include "LiteralQueue.h"
-
+//#include "LiteralQueue.h"
+//#include "CharQueue.h"
+#include "AccessibleQueue.h"
 #include "Stack.h"
 
 // End Data structure --------
@@ -54,7 +55,7 @@
 
 #include "Calculator.h"
 
-#include "CalculatorPhase.h"
+#include "CalculateController.h"
 
 // End Math ------
 
@@ -62,5 +63,7 @@
 // Display
 #include "CalculatorDisplay.h"
 
+// ClickEvent
+#include "ClickEvent.h"
 
 #endif

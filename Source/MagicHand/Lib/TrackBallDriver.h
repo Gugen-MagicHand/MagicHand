@@ -108,8 +108,12 @@ public:
         return down;
     }
 
+    
     bool GetButton() {
-        return digitalRead(pinBTN);
+        // Pull up:
+        //  押されたら, LOW
+        //  その他は, HIGH
+        return !digitalRead(pinBTN);
     }
 
     void ReadLeft(void) {

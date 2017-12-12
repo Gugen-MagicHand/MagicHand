@@ -46,6 +46,74 @@ enum LITERAL {
 };
 
 
+char LiteralToChar(LITERAL literalToChar) {
+
+    char ch;
+
+    switch (literalToChar) {
+    case LITERAL::LITERAL_0:
+        ch = '0';
+        break;
+    case LITERAL::LITERAL_1:
+        ch = '1';
+        break;
+    case LITERAL::LITERAL_2:
+        ch = '2';
+        break;
+    case LITERAL::LITERAL_3:
+        ch = '3';
+        break;
+    case LITERAL::LITERAL_4:
+        ch = '4';
+        break;
+    case LITERAL::LITERAL_5:
+        ch = '5';
+        break;
+    case LITERAL::LITERAL_6:
+        ch = '6';
+        break;
+    case LITERAL::LITERAL_7:
+        ch = '7';
+        break;
+    case LITERAL::LITERAL_8:
+        ch = '8';
+        break;
+    case LITERAL::LITERAL_9:
+        ch = '9';
+        break;
+    case LITERAL::LITERAL_PLUS:
+        ch = '+';
+        break;
+    case LITERAL::LITERAL_MINUS:
+        ch = '-';
+        break;
+    case LITERAL::LITERAL_MULTIPLY:
+        ch = 'x';
+        break;
+    case LITERAL::LITERAL_DIVIDE:
+        ch = '/';
+        break;
+    case LITERAL::LITERAL_EQUAL:
+        ch = '=';
+        break;
+    case LITERAL::LITERAL_LEFT_BRACKET:
+        ch = '(';
+        break;
+    case LITERAL::LITERAL_RIGHT_BRACKET:
+        ch = ')';
+        break;
+    case LITERAL::LITERAL_DOT:
+        ch = '.';
+        break;
+    case LITERAL::LITERAL_UNKNOWN:
+        ch = '?';
+        break;
+    }
+
+    return ch;
+}
+
+
 String LiteralToString(LITERAL literalToStr) {
     String str;
 
