@@ -21,7 +21,7 @@ static const int PIN_TFT_CS = 36;
 static const unsigned long STROKE_INTERVAL_TIME = 200;
 static const unsigned long WORD_INTERVAL_TIME = 500;
 
-static const unsigned long SKETCH_INTERVAL_TIME = 10;
+static const unsigned long SKETCH_INTERVAL_TIME = 30;
 
 static const int CLICK_EVENT_QUEUE_CAPACITY = 3;
 static const int CANVAS_QUEUE_CAPACITY = 6;

@@ -4,7 +4,8 @@
 
 #include <TFT.h>
 //#include "LiteralQueue.h"
-#include "CharQueue.h"
+//#include "CharQueue.h"
+#include "AccessibleQueue.h"
 #include "Stroke.h"
 
 #include "Fraction.h"
@@ -57,9 +58,9 @@ private:
 
     CalculateController::CALCULATE_PHASE calPhasePrev;
 
-    CharQueue assembledCharQueue;
+    AccessibleQueue<char> assembledCharQueue;
 
-    CharQueue formulaCharQueue;
+    AccessibleQueue<char> formulaCharQueue;
 
     bool isFormulaUpdated;
 
