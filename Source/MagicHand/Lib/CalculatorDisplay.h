@@ -132,6 +132,7 @@ public:
 
     void FormulaCharQueueClear() {
         formulaCharQueue.Clear();
+        isFormulaUpdated = true;
     }
 
 
@@ -275,8 +276,8 @@ private:
 
     void DrawAnswer() {
 
-        if ((isFraction != isFractionPrev) 
-            || (answerFraction.Denom() != answerFractionPrev.Denom()) 
+        if ((isFraction != isFractionPrev)
+            || (answerFraction.Denom() != answerFractionPrev.Denom())
             || answerFraction.Numer() != answerFractionPrev.Numer()) {
 
             //answer画面の初期化
@@ -327,14 +328,18 @@ private:
 
             // 分母が1の時
             if (bottomStr == "") {
-
-                if (topStr.length() < 6) {
+                int length = topStr.length();
+                if (length <= 5) {
 
                     setTextSize(3);
                 }
-                else {
+                else if (length <= 7) {
 
                     setTextSize(2);
+                }
+                else {
+
+                    setTextSize(1);
                 }
 
                 text(topStr.c_str(), 10, 55);
@@ -342,13 +347,34 @@ private:
 
 
             else {
-                setTextSize(2);
+
+
+                int maxLength = max(topStr.length(), bottomStr.length());
+
+                if (maxLength <= 5) {
+
+                    setTextSize(3);
+
+                    drawFastHLine(10, 90, 18 * maxLength, ST7735_WHITE);
+                }
+                else if (maxLength <= 7) {
+
+                    setTextSize(2);
+
+                    drawFastHLine(10, 90, 12 * maxLength, ST7735_WHITE);
+                }
+                else {
+
+                    setTextSize(1);
+
+                    drawFastHLine(10, 90, 6 * maxLength, ST7735_WHITE);
+                }
+
+
+
 
                 text(topStr.c_str(), 10, 70);
                 text(bottomStr.c_str(), 10, 92);
-
-                int maxLength = max(topStr.length(), bottomStr.length());
-                drawFastHLine(10, 90, 12 * maxLength, ST7735_WHITE);
             }
 
             answerFractionPrev = answerFraction;

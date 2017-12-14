@@ -292,7 +292,7 @@ public:
         testCanvas.color = false;
         testCanvas.Boxf(0, 0, testCanvas.SizeX(), testCanvas.SizeY());
 */
-        SerialPrintCanvas(*toCanvas);
+        //SerialPrintCanvas(*toCanvas);
 
         //キャンバスのクリア
         //ClearSketcherCanvas();

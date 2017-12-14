@@ -34,7 +34,7 @@ public:
 
     Calculator calculator;
 
-    Operator *pointerToOperator;
+    Operator *pointerToOperator = 0x00;
     LiteralFraction literalFraction;
 
     void(*onPushLiteralIntoFormula)(LITERAL lit);
@@ -80,6 +80,16 @@ public:
 
         return 0x00;
     }
+
+    void Reset() {
+        phase = CALCULATE_PHASE_FOMULA_FIRST_INPUT;
+
+        literalFraction.Clear();
+        pointerToOperator = 0x00;
+
+        calculator.ClearAllStacks();
+    }
+
 
     Calculator::CAL_STATUS Put(LITERAL lit) {
         Calculator::CAL_STATUS calStatus = Calculator::CAL_STATUS::CAL_STATUS_SUCCESS;

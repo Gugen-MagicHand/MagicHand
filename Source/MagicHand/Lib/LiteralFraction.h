@@ -32,8 +32,8 @@ public:
 
     Fraction ToFraction() {
 
-        int numer = 0;
-        int base = 1;
+        long numer = 0;
+        long base = 1;
         for (int i = 0; i < significandCount; i++) {
             numer += significand[significandCount - i - 1] * base;
 
@@ -68,8 +68,8 @@ public:
             if (significandCount < SIGNIFICAND_MAX_COUNT) {
                 // 仮数部の桁数に入っている場合
 
-                if (significandCount >= 1 && significand[significandCount - 1] == LITERAL::LITERAL_0) {
-                    // 直前に0がある場合
+                if (significandCount == 1 && significand[significandCount - 1] == LITERAL::LITERAL_0) {
+                    // 一桁目が0の場合
 
                     if (!isPointed) {
                         // 直前に0があり, 小数点が打たれていない場合,

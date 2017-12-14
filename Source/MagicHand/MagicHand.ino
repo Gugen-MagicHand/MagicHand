@@ -1,17 +1,27 @@
 
 // Main header
 #include "Lib/MagicHand.h"
+//
+//static const int PIN_TRACK_BALL_BUTTON = 13;
+//static const int PIN_TRACK_BALL_LEFT = 12;
+//static const int PIN_TRACK_BALL_RIGHT = 11;
+//static const int PIN_TRACK_BALL_UP = 10;
+//static const int PIN_TRACK_BALL_DOWN = 8;
+//static const int PIN_TRACK_BALL_WHITE = 7;
+//static const int PIN_TRACK_BALL_GREEN = 6;
+//static const int PIN_TRACK_BALL_RED = 5;
+//static const int PIN_TRACK_BALL_BLUE = 9;
+//
 
 static const int PIN_TRACK_BALL_BUTTON = 13;
 static const int PIN_TRACK_BALL_LEFT = 12;
 static const int PIN_TRACK_BALL_RIGHT = 11;
 static const int PIN_TRACK_BALL_UP = 10;
-static const int PIN_TRACK_BALL_DOWN = 8;
-static const int PIN_TRACK_BALL_WHITE = 7;
-static const int PIN_TRACK_BALL_GREEN = 6;
-static const int PIN_TRACK_BALL_RED = 5;
-static const int PIN_TRACK_BALL_BLUE = 9;
-
+static const int PIN_TRACK_BALL_DOWN = 9;
+static const int PIN_TRACK_BALL_WHITE = 8;
+static const int PIN_TRACK_BALL_GREEN = 7;
+static const int PIN_TRACK_BALL_RED = 6;
+static const int PIN_TRACK_BALL_BLUE = 5;
 
 static const int PIN_TFT_RS = 40;
 static const int PIN_TFT_RST = 38;
@@ -354,6 +364,8 @@ TaskLoop(CaluculateAndOutputTask) {
             break;
 
         case CLICK_EVENT::LONG_PRESS:
+
+            /*
             if (calculateController.Phase() == CalculateController::CALCULATE_PHASE::CALCULATE_PHASE_OPERAND_INPUT) {
                 
                 while (calculateController.literalFraction.BackSpace()) {
@@ -362,6 +374,9 @@ TaskLoop(CaluculateAndOutputTask) {
 
                 }
             }
+            */
+            display.FormulaCharQueueClear();
+            calculateController.Reset();
 
             break;
 
